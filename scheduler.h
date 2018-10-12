@@ -24,13 +24,13 @@ class Sched{
 
     //timer time1;
 
-    List<int> queue1;   //round robin
+    List<int> queue1;   //round robin //this is the ready queue
     List<int> queue2;   //round robin
     List<int> queue3;   //first come first serve
 
     int manage();
     rapidxml::xml_node<>* getApp(int, int);
-    
+
     void maintanance();
 };
 
