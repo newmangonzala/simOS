@@ -4,11 +4,10 @@
 
 
 
+
+
 using namespace rapidxml;
 
-Sched::Sched(){
-
-}
 
 int Sched::manage(){
     int current;
@@ -48,10 +47,20 @@ rapidxml::xml_node<>* Sched::getApp(int index, int instruction){
     //make sure to zero terminate the buffer
     buffer.push_back('\0');
 
+    
+
+    //parse buffer
     doc.parse<0>(&buffer[0]);
 
     //access the root node
     root_node = doc.first_node("Processes");
+
+
+
+    //std::cout << &root_node[0] << endl;
+
+    
+
 
     //iterate throught the apps until 
     xml_node<> * app = root_node->first_node("app");
@@ -74,6 +83,53 @@ rapidxml::xml_node<>* Sched::getApp(int index, int instruction){
 
 }
 
+
+
 void Sched::maintanance(){
     
+}
+
+
+vector<Sched::instrucion> Sched::test(){
+
+/*
+    xml_document<> doctmp;
+    xml_node<> *node = doctmp.allocate_node(node_element, "p", "Google");
+    doctmp.append_node(node);
+    xml_attribute<> *attr = doctmp.allocate_attribute("href", "google.com");
+    node->append_attribute(attr);
+
+    //std::cout << node->value() << endl;
+*/
+
+    ifstream file("process.xml");
+
+    xml_document<> doc;
+    xml_node<> * root_node;
+
+    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+
+    //make sure to zero terminate the buffer
+    buffer.push_back('\0');
+
+    //parse buffer
+    doc.parse<0>(&buffer[0]);
+
+    //access the root node
+    root_node = doc.first_node("Processes");
+
+    vector<instrucion> app1; 
+    instrucion I1;
+
+    //iterate throught the app to get all the instructions
+    xml_node<> * app = root_node->first_node("app");
+    for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
+        I1.type = inst->value();
+        I1.time = stoi(inst->first_attribute("time")->value());
+        app1.push_back(I1);
+    }
+
+    file.close();
+
+    return app1;
 }

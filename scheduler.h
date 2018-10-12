@@ -11,6 +11,8 @@
 #include "timer.h"
 #include "rapidxml.hpp"
 
+
+
 //Here there will be the scheduler and dispacher
 
 
@@ -20,7 +22,8 @@ class Sched{
     
     public:
     
-    Sched();
+
+
 
     //timer time1;
 
@@ -28,8 +31,15 @@ class Sched{
     List<int> queue2;   //round robin
     List<int> queue3;   //first come first serve
 
+    struct instrucion{
+        std::string type;
+        int time;
+    };
+
     int manage();
     rapidxml::xml_node<>* getApp(int, int);
+
+    vector<Sched::instrucion> test();
 
     void maintanance();
 };

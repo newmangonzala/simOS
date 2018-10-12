@@ -10,7 +10,7 @@ using namespace std;
 class mem{
 
     private:
-        //string memory[];
+        
     public:
-
+    
 };

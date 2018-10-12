@@ -75,7 +75,25 @@ int main(){
     Sched S1;
     //S1.queue1.insertNode(5);
     //S1.manage();
-    S1.getApp(2,2);
+    rapidxml::xml_node<>* tmp = S1.getApp(2,2);
+
+    vector<Sched::instrucion> t = S1.test();
+    
+
+    for(int i = 0; i < t.size(); i++){
+        cout << t[i].type << " ";
+        cout << t[i].time << endl;
+    }
+
+    //vector<std::string> test[2];
+    //test.push_back("h","f");
+
+    //vector<xml_node<>*> RT = S1.test();
+    //cout << t.size() << endl;
+    //cout << RT[0]->value() << endl;
+    //cout << tmp->first_attribute("time")->value()  << endl;
+
+    //cout << t->value() << endl;
 
     //cout << S1.queue1.getReference() << endl;
 
@@ -103,7 +121,7 @@ rapidxml::xml_node<>* loadApp(int index, int instruction){
     xml_document<> doc;
     xml_node<> * root_node;
 
-    vector<char> buffe(r(istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
     //make sure to zero terminate the buffer
     buffer.push_back('\0');
