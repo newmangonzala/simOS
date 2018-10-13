@@ -1,7 +1,7 @@
 #include "pcb.h"
 
 
-PrBkCtr::PrBkCtr(void){
+PrBkCtr::PrBkCtr(){
     id++;
 
     Registers.R0 = "";        //CPU register
@@ -18,3 +18,5 @@ PrBkCtr::PrBkCtr(void){
 
 
 }
+
+//PrBkCtr::PrBkCtr(vector<char> l){}

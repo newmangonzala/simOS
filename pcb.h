@@ -2,7 +2,11 @@
 #define PCB_H
 
 
+
 #include <string>
+
+
+
 
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
 
@@ -12,6 +16,7 @@ class PrBkCtr{
         static int id;
 
         PrBkCtr();
+        //PrBkCtr(vector<mem::instrucion>);
         
 
         struct Registers{           //CPU register

@@ -1,20 +1,43 @@
-
-
 #include <iostream>
+#include <vector>
+#include <numeric>
+#include <string>
 
 #include "scheduler.h"
 #include "timer.h"
 #include "include.cpp"
 #include <time.h>
 #include <chrono>
-#include <numeric>
+
 #include "log.h"
-#include <string>
+
 #include "rapidxml.hpp"
-#include <vector>
+
 
 #include "memory.h"
 #include "pcb.h"
+/*
+#include <vector>
+#include <iostream>
+#include <numeric>
+#include <string>
+
+#include "include.cpp"
+#include "memory.h"
+#include "scheduler.h"
+
+
+
+
+#include "log.h"
+
+#include "rapidxml.hpp"
+
+#include "pcb.h"
+*/
+//#include "timer.h"
+//#include <time.h>
+//#include <chrono>
 
 
 using namespace std;
@@ -23,39 +46,6 @@ using namespace rapidxml;
 int PrBkCtr::id = 0;
 
 int main(){
-
-    /*
-    to do list:
-    process scheduler
-
-   */
-
-    /*
-    ifstream file("process.xml");
-
-    xml_document<> doc;
-    xml_node<> * root_node;
-
-    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-    buffer.push_back('\0');
-
-    doc.parse<0>(&buffer[0]);
-
-    root_node = doc.first_node("Processes");
-    xml_node<> * process = root_node->first_node("p");
-
-    for (xml_node<> * process = root_node->first_node("p"); process; process = process->next_sibling()){
-	    
-        xml_node<> * intruction = process->first_node("action");
-        
-        cout << intruction->value();
-        cout << intruction->first_attribute("time")->value() << endl;
-        
-    }
-
-    file.close();
-
-    */
 
 /*
     timer t1;
@@ -80,37 +70,70 @@ int main(){
  //   int numPr;
  //   cin >> numPr;
 
-    
-
-
-    PrBkCtr pcb1;
-
-
-
-    Sched S1;
-    S1.queue1.insertNode(pcb1);
-
-    auto pcb = S1.queue1.getHead()->data;
-
-    unsigned int j = pcb.PID;
-
-    cout << pcb1.PID << endl;
-
-
-
 /*
-    mem M1(numPr);
+     mem M1(3);
+    //mem M1(numPr);
     vector<mem::instrucion> t = M1.loadApps();
     
-
-    for(int i = 0; i < t.size(); i++){
-        cout << t[i].type << " ";
-        cout << t[i].time << endl;
+    for(int i = 0; i < M1.memory1[0].size(); i++){
+        cout << M1.memory1[0][i].type << " ";
+        cout << M1.memory1[0][i].time << endl;
     }
 
-    cout << M1.memory1.size() << endl;
-    cout << M1.numProcess << endl;
+    //cout << M1.memory1.size() << endl;
+    //cout << M1.numProcess << endl;   
+
+
+    Sched S1(M1.queue1);
+
+    for(int i = 0; i < M1.memory1.size(); i++){
+        PrBkCtr pcb;
+        S1.queue1->insertNode(pcb);
+    }
+        */
+/*
+    //PrBkCtr pcb1;
+
+    //List<PrBkCtr> queue1; //READY
+
+    
+
+    Sched S1(queue1);
+
+    cout << &queue1 << endl;
+    cout << S1.queue1 << endl;
+
+    queue1.insertNode(pcb1);  //these two are equev
+    //S1.queue1->insertNode(pcb1);
+
+
+    auto t = S1.queue1->getHead();
+    auto g = queue1.getHead();
+
+    cout << t << endl; //equ
+    cout << g << endl;
+
+    List<int> L1;
+    L1.insertNode(5);
+    auto m = L1.getHead();
+    cout << m->data << endl;
+
+  
+    PrBkCtr* f = &(t->data);
+    PrBkCtr* c = &(g->data);
+    cout << &(*f) << endl;
+    cout << &(*c) << endl;
+ 
+    f->PID = 33;
+
+    cout << f->PID << endl;
+    cout << c->PID << endl;
+
 */
+
+
+
+
 
     
 

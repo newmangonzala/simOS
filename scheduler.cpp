@@ -1,6 +1,6 @@
 #include "scheduler.h"
 #include "rapidxml.hpp"
-
+#include <iostream>
 
 
 
@@ -9,10 +9,20 @@
 using namespace rapidxml;
 
 
+Sched::Sched(List<PrBkCtr>& Q1){
+    queue1 = &Q1;
+    //std::cout << &Q1 << endl;
+    //std::cout << queue1 << endl;
+    //auto tmp = queue1.getHead()->data;
+    //std::cout << tmp.PID << endl;
+}
+
 int Sched::manage(){
     int current;
     
-    while(!queue1.isEmpty()){
+    //std::cout << (queue1.getHead()->data).PID << std::endl;
+
+    //while(!queue1.isEmpty()){
         
         //std::chrono::duration<double,std::milli> dif;
         //auto start = std::chrono::system_clock::now(); 
@@ -21,7 +31,7 @@ int Sched::manage(){
 
         //current = queue1.getHead();
         return 1;
-    }
+    //}
     /*
     else if(!queue2.isEmpty()) {
         current = queue2.getReference();

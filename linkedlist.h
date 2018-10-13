@@ -20,7 +20,6 @@ class List{
 	private:
 		struct node{
 			type data;
-            node *prev;
 			node *next;
 		};
         

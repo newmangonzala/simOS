@@ -29,22 +29,26 @@ vector<mem::instrucion> mem::loadApps(){
     //access the root node
     root_node = doc.first_node("Processes");
 
-    vector<instrucion> app1; 
+     
     instrucion I1; 
 
     //iterate throught the app to get all the instructions
+    vector<instrucion> app1;
+
     xml_node<> * app = root_node->first_node("app");
-    for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
-        I1.type = inst->value();
-        I1.time = stoi(inst->first_attribute("time")->value());
-        app1.push_back(I1);
+    for (int i = 1; i <= numProcess; i++){
+        vector<instrucion> app1;
+        for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
+            
+            I1.type = inst->value();
+            I1.time = stoi(inst->first_attribute("time")->value());
+            app1.push_back(I1);
+        }
+        //load proccess into memory
+        memory1.push_back(app1);
+
+        app = app->next_sibling();
     }
-
-    //PCB pcb1;
-
-    //load proccess into memory
-    memory1.push_back(app1);
-
 
 
     file.close();
