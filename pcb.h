@@ -16,8 +16,8 @@ class PrBkCtr{
         static int id;
 
         PrBkCtr();
-        //PrBkCtr(vector<mem::instrucion>);
-        
+        PrBkCtr(List<mem::instrucion>::node*);
+
 
         struct Registers{           //CPU register
             string R0;
@@ -28,7 +28,7 @@ class PrBkCtr{
         }Registers; 
         STATE state;   //Process state {new, ready, running, waiting, terminated}
         unsigned int PID;           //Process number
-        unsigned int PC;            //Program Counter
+        List<mem::instrucion>::node* PC;            //Program Counter
         unsigned int Privalage;     //Privalage
 
         // priorities, scheduling queue pointers
@@ -45,6 +45,8 @@ class PrBkCtr{
             //CPU used
             //
         //}accounting;
+
+       // mem::instrucion l;
 
 };
 

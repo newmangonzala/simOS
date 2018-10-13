@@ -12,21 +12,23 @@ class List;
 //template <typename type>
 //ostream& operator<< (ostream& os, List<type>& print); ///this is needed so operator overload works
 
-
+class mem;
 
 template <class type>
 class List{
 	
-	private:
+	public:
 		struct node{
 			type data;
 			node *next;
 		};
         
-	node *head; //head node = current node running
-	node *tail; 
+
 		
-	public:
+	
+		node *head; //head node = current node running
+		node *tail; 
+
 		List();
 		~List();
 		void insertNode(type);  //insert Node before the the tail
@@ -87,10 +89,10 @@ void List<type>::insertNode(type dat){
 	}
 	else if (tail == head){
 		tail = nNode;
-		tail->next = head;
+		head->next = nNode;
 	}
 	else{
-        nNode->next = tail;
+        tail->next = nNode;
 		tail = nNode;
 	}
 	return;

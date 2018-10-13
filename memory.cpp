@@ -33,16 +33,17 @@ vector<mem::instrucion> mem::loadApps(){
     instrucion I1; 
 
     //iterate throught the app to get all the instructions
-    vector<instrucion> app1;
+    vector<instrucion> app4;
 
     xml_node<> * app = root_node->first_node("app");
     for (int i = 1; i <= numProcess; i++){
-        vector<instrucion> app1;
+        List<instrucion> app1;
         for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
             
             I1.type = inst->value();
             I1.time = stoi(inst->first_attribute("time")->value());
-            app1.push_back(I1);
+            app1.insertNode(I1);
+            //app1.push_back(I1);
         }
         //load proccess into memory
         memory1.push_back(app1);
@@ -53,5 +54,5 @@ vector<mem::instrucion> mem::loadApps(){
 
     file.close();
 
-    return app1;
+    return app4;
 }

@@ -7,17 +7,15 @@
 #include <vector>
 #include <fstream>
 
-#include "linkedlist.h"
-#include "timer.h"
-#include "memory.h"
-#include "pcb.h"
-
 #include "rapidxml.hpp"
 
+#include "linkedlist.h"
+
+//#include "memory.h"
+#include "pcb.h"
 
 
-//Here there will be the scheduler and dispacher
-
+//Here there will be the scheduler
 
 class Sched{
 
@@ -25,8 +23,8 @@ class Sched{
     
     public:
     
-    
     Sched(List<PrBkCtr>&);
+    //Sched();
 
     //timer time1;
 

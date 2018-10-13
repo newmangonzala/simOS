@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "pcb.h"
 #include "rapidxml.hpp"
 
 using namespace std;
@@ -29,9 +28,8 @@ class mem{
 
     int numProcess;
     vector<mem::instrucion> loadApps(); //this is the loader
-    vector<vector<mem::instrucion> > memory1;
+    vector<List<mem::instrucion> > memory1;
 
-    List<PrBkCtr> queue1; //READY
 };
 
 #endif

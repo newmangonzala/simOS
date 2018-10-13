@@ -13,10 +13,13 @@ PrBkCtr::PrBkCtr(){
 
     state = NEW;
     PID = id;
-    PC = 0;
+    //PC = 0;
     Privalage = 0;
 
 
 }
 
-//PrBkCtr::PrBkCtr(vector<char> l){}
+PrBkCtr::PrBkCtr(List<mem::instrucion>::node* v){
+
+    PC = v;
+}
