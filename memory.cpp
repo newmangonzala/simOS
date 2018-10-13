@@ -30,7 +30,7 @@ vector<mem::instrucion> mem::loadApps(){
     root_node = doc.first_node("Processes");
 
     vector<instrucion> app1; 
-    instrucion I1;
+    instrucion I1; 
 
     //iterate throught the app to get all the instructions
     xml_node<> * app = root_node->first_node("app");
@@ -40,12 +40,12 @@ vector<mem::instrucion> mem::loadApps(){
         app1.push_back(I1);
     }
 
-    PCB pcb1;
+    //PCB pcb1;
 
     //load proccess into memory
     memory1.push_back(app1);
 
-    
+
 
     file.close();
 

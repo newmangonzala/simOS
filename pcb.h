@@ -2,22 +2,25 @@
 #define PCB_H
 
 
-#include <iostream>
 #include <string>
-
-using namespace std;
 
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
 
-class PCB{
-    private:
+class PrBkCtr{
+    public:
+
+        static int id;
+
+        PrBkCtr();
+        
+
         struct Registers{           //CPU register
             string R0;
             string R1;
             string R2;
             string R3;
             string R4;
-        }Registers;
+        }Registers; 
         STATE state;   //Process state {new, ready, running, waiting, terminated}
         unsigned int PID;           //Process number
         unsigned int PC;            //Program Counter

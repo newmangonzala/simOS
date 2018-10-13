@@ -51,7 +51,7 @@ bool List<type>::isEmpty(){
 template <class type>
 auto List<type>::getHead(){
 		return head;
-}
+}  
 
 
 template <class type>
@@ -63,6 +63,7 @@ List<type>::List(){
 template <class type>
 List<type>::~List(){
 	
+	/*
 	node *nNode;
 	
 	while(head!=NULL){
@@ -71,6 +72,7 @@ List<type>::~List(){
 		free(nNode);
 	}
 	head = NULL;
+	*/
 }
 
 template <class type>

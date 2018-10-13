@@ -9,6 +9,9 @@
 
 #include "linkedlist.h"
 #include "timer.h"
+#include "memory.h"
+#include "pcb.h"
+
 #include "rapidxml.hpp"
 
 
@@ -27,15 +30,14 @@ class Sched{
 
     //timer time1;
 
-    List<int> queue1;   //round robin //this is the ready queue
-    List<int> queue2;   //round robin
-    List<int> queue3;   //first come first serve
+    List<PrBkCtr> queue1;   //round robin //this is the ready queue
+    //List<int> queue2;   //round robin
+    //List<int> queue3;   //first come first serve
 
 
 
     int manage();
-    rapidxml::xml_node<>* getApp(int, int);
-
+ 
     void maintanance();
 };
 

@@ -1,7 +1,7 @@
 
 
 #include <iostream>
-#include "pcb.h"
+
 #include "scheduler.h"
 #include "timer.h"
 #include "include.cpp"
@@ -14,10 +14,13 @@
 #include <vector>
 
 #include "memory.h"
+#include "pcb.h"
 
 
 using namespace std;
 using namespace rapidxml;
+
+int PrBkCtr::id = 0;
 
 int main(){
 
@@ -74,15 +77,28 @@ int main(){
    
 */
 
-    int numPr;
-    cin >> numPr;
+ //   int numPr;
+ //   cin >> numPr;
+
+    
+
+
+    PrBkCtr pcb1;
+
+
 
     Sched S1;
-    //S1.queue1.insertNode(5);
-    //S1.manage();
-    rapidxml::xml_node<>* tmp = S1.getApp(2,2);
+    S1.queue1.insertNode(pcb1);
+
+    auto pcb = S1.queue1.getHead()->data;
+
+    unsigned int j = pcb.PID;
+
+    cout << pcb1.PID << endl;
 
 
+
+/*
     mem M1(numPr);
     vector<mem::instrucion> t = M1.loadApps();
     
@@ -94,20 +110,12 @@ int main(){
 
     cout << M1.memory1.size() << endl;
     cout << M1.numProcess << endl;
+*/
 
-    //vector<std::string> test[2];
-    //test.push_back("h","f");
+    
 
-    //vector<xml_node<>*> RT = S1.test();
-    //cout << t.size() << endl;
-    //cout << RT[0]->value() << endl;
-    //cout << tmp->first_attribute("time")->value()  << endl;
+    
 
-    //cout << t->value() << endl;
-
-    //cout << S1.queue1.getReference() << endl;
-
-   
     /*
     log(logINFO) << "foo " << "bar " << "baz";
 
