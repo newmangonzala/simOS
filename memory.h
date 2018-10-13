@@ -1,6 +1,13 @@
+#ifndef MEMORY_H
+#define MEMORY_H
+
 
 #include <iostream>
 #include <string>
+#include <vector>
+
+#include "pcb.h"
+#include "rapidxml.hpp"
 
 using namespace std;
 
@@ -10,7 +17,19 @@ using namespace std;
 class mem{
 
     private:
-        
+        //
     public:
-    
+
+    mem(int);
+    struct instrucion{
+        std::string type;
+        int time;
+
+    };
+
+    int numProcess;
+    vector<mem::instrucion> loadApps(); //this is the loader
+    vector<vector<mem::instrucion> > memory1;
 };
+
+#endif

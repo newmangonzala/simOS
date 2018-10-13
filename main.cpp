@@ -13,6 +13,8 @@
 #include "rapidxml.hpp"
 #include <vector>
 
+#include "memory.h"
+
 
 using namespace std;
 using namespace rapidxml;
@@ -72,18 +74,26 @@ int main(){
    
 */
 
+    int numPr;
+    cin >> numPr;
+
     Sched S1;
     //S1.queue1.insertNode(5);
     //S1.manage();
     rapidxml::xml_node<>* tmp = S1.getApp(2,2);
 
-    vector<Sched::instrucion> t = S1.test();
+
+    mem M1(numPr);
+    vector<mem::instrucion> t = M1.loadApps();
     
 
     for(int i = 0; i < t.size(); i++){
         cout << t[i].type << " ";
         cout << t[i].time << endl;
     }
+
+    cout << M1.memory1.size() << endl;
+    cout << M1.numProcess << endl;
 
     //vector<std::string> test[2];
     //test.push_back("h","f");
@@ -112,42 +122,4 @@ int main(){
 
     
     system("pause");
-}
-
-rapidxml::xml_node<>* loadApp(int index, int instruction){
-    
-    ifstream file("process.xml");
-
-    xml_document<> doc;
-    xml_node<> * root_node;
-
-    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-
-    //make sure to zero terminate the buffer
-    buffer.push_back('\0');
-
-    doc.parse<0>(&buffer[0]);
-
-    //access the root node
-    root_node = doc.first_node("Processes");
-
-    //iterate throught the apps until 
-    xml_node<> * app = root_node->first_node("app");
-    for (int i = 1; i < index; i++){
-         app = app->next_sibling();
-    }
-
-    //iterate throught the instructions
-    xml_node<> * inst = app->first_node("action");
-    for (int i = 1; i < instruction; i++ ){
-        inst = inst->next_sibling();
-    }
-      
-    cout << inst->value() << " ";
-    cout << inst->first_attribute("time")->value() << endl;
-
-    file.close();
-
-    return inst;
-
 }

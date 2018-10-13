@@ -19,8 +19,8 @@ int Sched::manage(){
         auto end = std::chrono::system_clock::now(); 
         dif = end - start;
 
-        current = queue1.getReference();
-        return current;
+        //current = queue1.getHead();
+        return 1;
     }
     /*
     else if(!queue2.isEmpty()) {
@@ -89,9 +89,6 @@ void Sched::maintanance(){
     
 }
 
-
-vector<Sched::instrucion> Sched::test(){
-
 /*
     xml_document<> doctmp;
     xml_node<> *node = doctmp.allocate_node(node_element, "p", "Google");
@@ -101,35 +98,4 @@ vector<Sched::instrucion> Sched::test(){
 
     //std::cout << node->value() << endl;
 */
-
-    ifstream file("process.xml");
-
-    xml_document<> doc;
-    xml_node<> * root_node;
-
-    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-
-    //make sure to zero terminate the buffer
-    buffer.push_back('\0');
-
-    //parse buffer
-    doc.parse<0>(&buffer[0]);
-
-    //access the root node
-    root_node = doc.first_node("Processes");
-
-    vector<instrucion> app1; 
-    instrucion I1;
-
-    //iterate throught the app to get all the instructions
-    xml_node<> * app = root_node->first_node("app");
-    for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
-        I1.type = inst->value();
-        I1.time = stoi(inst->first_attribute("time")->value());
-        app1.push_back(I1);
-    }
-
-    file.close();
-
-    return app1;
-}
+ 

@@ -24,14 +24,16 @@ class List{
 			node *next;
 		};
         
-	node *reference; //reference node from circular linked list
+	node *head; //head node = current node running
+	node *tail; 
 		
 	public:
 		List();
 		~List();
-		void insertNode(type);  //insert Node before the current Node in execusion
+		void insertNode(type);  //insert Node before the the tail
 		void deleteNode();      //deletes node from the list
-		type getReference();
+		auto getHead();
+		//type getTail();
 		bool isEmpty();
 		// display(ostream&);
 		//friend ostream&  operator<< <>(ostream&, List<type>&);
@@ -40,31 +42,35 @@ class List{
 
 template <class type>
 bool List<type>::isEmpty(){
-	if(reference == NULL)
+	if(head == NULL)
 		return true;
 	else
 		return false;
 }
 
 template <class type>
-type List<type>::getReference(){
-	if(reference != NULL){
-		return reference->data;
-	}
-	else
-		return -1;
+auto List<type>::getHead(){
+		return head;
 }
 
 
 template <class type>
 List<type>::List(){
-	reference = NULL;
+	head = NULL;
+	tail = NULL;
 }
 
 template <class type>
 List<type>::~List(){
 	
-	//while(top!=NULL){	List<type>::popNode();}
+	node *nNode;
+	
+	while(head!=NULL){
+		nNode = tail;
+		tail = nNode->next;
+		free(nNode);
+	}
+	head = NULL;
 }
 
 template <class type>
@@ -73,18 +79,18 @@ void List<type>::insertNode(type dat){
 	nNode = new node;
 	nNode->data = dat;
 	nNode->next = NULL;
-    nNode->prev = NULL;
 
-	if(reference == NULL){
-		reference = nNode;
+	if(tail == NULL){
+		head = nNode;
+		tail = nNode;
+	}
+	else if (tail == head){
+		tail = nNode;
+		tail->next = head;
 	}
 	else{
-        node *ptr;
-        ptr = reference->prev;
-        ptr->next = nNode;
-        nNode->prev = ptr;
-        nNode->next = reference;
-        reference->prev = nNode;
+        nNode->next = tail;
+		tail = nNode;
 	}
 	return;
 }
@@ -93,26 +99,21 @@ template <class type>
 void List<type>::deleteNode(){
 	
 	
-	if(reference!=NULL){
+	if(head!=NULL){
 		
 		node *ptr; 
-		ptr = reference->next; 
-		
-		if(ptr == NULL){
-			free(reference);
-			reference = NULL; 
+		ptr = tail; 
+		if(head != tail){
+			while(ptr->next != head){
+				ptr = ptr->next;
+			}
+			free(head);
+			head = ptr;
 		}
-        else if(ptr == reference->prev){
-            ptr->next =  NULL;
-            ptr->prev = NULL;
-            free(reference);
-            reference = ptr;
-        }
 		else{
-			reference->prev->next = ptr;
-            ptr->prev = reference->prev;  
-			free(reference);
-            reference = ptr; 
+			free(head);
+			head = NULL;
+			tail = NULL;
 		}
 	}
 }
