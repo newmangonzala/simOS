@@ -16,10 +16,10 @@
 
 
 //Here there will be the scheduler
-
+//multilevel Feedback Queue
 class Sched{
 
-    //multilevel Feedback Queue
+    
     
     public:
     
@@ -33,6 +33,8 @@ class Sched{
     //List<int> queue3;   //first come first serve
 
 
+
+    void updateQ();
 
     int manage();
  

@@ -30,6 +30,8 @@ class mem{
     vector<mem::instrucion> loadApps(); //this is the loader
     vector<List<mem::instrucion> > memory1;
 
+
+    
 };
 
 #endif

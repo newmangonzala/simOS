@@ -98,6 +98,13 @@ int main(){
     
 
     S1.running();
+    struct A{
+        string a = "yield";
+    }B;
+
+    string g = B.a;
+
+   // cout << "///////" << g.compare("H") << endl;
 /*
     List<PrBkCtr>::node* h2 = S1.queue1->getHead();
     PrBkCtr w = h2->data;

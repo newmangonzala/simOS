@@ -6,8 +6,8 @@
         <action time="0">"yield"</action>
     </app>
     <app>
-        <action time="40">"io"</action>
-        <action time="70">"calculate"</action>
+        <action time="40">"io2"</action>
+        <action time="70">"calculate2"</action>
         <action time="0">"yield"</action>
     </app>
     <app>
