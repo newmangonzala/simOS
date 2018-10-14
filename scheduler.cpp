@@ -1,13 +1,5 @@
 #include "scheduler.h"
-//#include "rapidxml.hpp"
 #include <thread> 
-
-
-
-
-
-using namespace rapidxml;
-
 
 Sched::Sched(List<PrBkCtr>& Q1){ queue1 = &Q1; }
 //Sched::Sched(){}
@@ -15,8 +7,6 @@ Sched::Sched(List<PrBkCtr>& Q1){ queue1 = &Q1; }
 int Sched::manage(){
     return 1;
 }
-
-
 
 //move current process to the back of the queue
 void Sched::updateQ(){
@@ -54,19 +44,21 @@ void Sched::running(){
         List<mem::instrucion>::node* r = w->PC;
         mem::instrucion* b = &r->data;
         int duration = b->time;
-        cout << "current process: "<< b->type << " has a duration of: " << duration << endl;
+        w->state = RUNNING;     //updating state to running
+        cout << "current process: "<< w->PID << " running inst: "  << b->type << "and has a current duration of: " << duration << endl;
         
         if((duration - qtime) <= 0){
             //wait for qtime - duration
             std::this_thread::sleep_for(std::chrono::microseconds(duration));
             b->time = 0;
-            cout << "current process: "<< b->type << " has been terminated" << endl;
+            cout << "current process: "<< w->PID << " of inst: " << b->type << " has been terminated" << endl;
             
             //check if instruction was the last from process
             string c = (r->next->data).type;
             if(c.compare("\"yield\"") == 0){
-                //cout << " //// checking if yield "<< c << endl;
+
                 cout << "deleting pcb " << w->PID << endl;
+                w->state = TERMINANTED; //updating state to terminated
                 queue1->deleteHead();
                 continue;
             }

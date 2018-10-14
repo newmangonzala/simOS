@@ -23,25 +23,23 @@ class List{
 			node *next;
 		};
         
-
-		
-	
-		node *head; //head node = current node running
-		node *tail; 
+		node *head; 	//head node = current node running
+		node *tail; 	//tail->next always point to null
 
 		List();
 		~List();
 		void insertNode(type);  //insert Node before the the tail
 		void deleteNode();      //deletes node from the list
-		void deleteHead();      //deletes node from the list
-		auto getHead();
-		//type getTail();
-		bool isEmpty();
+		void deleteHead();      //deletes head from the list
+		auto getHead();			//returns head
+		bool isEmpty();			//checks if empty
+
+		//functions recycled - might be useful
 		// display(ostream&);
 		//friend ostream&  operator<< <>(ostream&, List<type>&);
 };
 
-
+//checks if empty
 template <class type>
 bool List<type>::isEmpty(){
 	if(head == NULL)
@@ -50,11 +48,11 @@ bool List<type>::isEmpty(){
 		return false;
 }
 
+//returns the head of the queue
 template <class type>
 auto List<type>::getHead(){
 		return head;
 }  
-
 
 template <class type>
 List<type>::List(){
@@ -64,19 +62,10 @@ List<type>::List(){
 
 template <class type>
 List<type>::~List(){
-	
-	/*
-	node *nNode;
-	
-	while(head!=NULL){
-		nNode = tail;
-		tail = nNode->next;
-		free(nNode);
-	}
-	head = NULL;
-	*/
+	//FIX ME
 }
 
+//Insert Node to the tail of queue
 template <class type>
 void List<type>::insertNode(type dat){
 	node *nNode;
@@ -99,6 +88,7 @@ void List<type>::insertNode(type dat){
 	return;
 }
 
+//FIX ME
 template <class type>
 void List<type>::deleteNode(){
 	
@@ -124,7 +114,6 @@ void List<type>::deleteNode(){
 
 template <class type>
 void List<type>::deleteHead(){
-	
 	
 	if(head!=NULL){
 		

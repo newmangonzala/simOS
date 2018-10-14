@@ -3,27 +3,28 @@
 
 #include <string>
 
+//PCB states
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
 
 class PrBkCtr{
     public:
 
-        static int id;
+        static int id; //static id
 
         PrBkCtr();
         PrBkCtr(List<mem::instrucion>::node*);
     
-        struct Registers{           //CPU registers
+        struct Registers{                           //CPU registers
             string R0;
             string R1;
             string R2;
             string R3;
             string R4;
         }Registers; 
-        STATE state;   //Process state {new, ready, running, waiting, terminated}
+        STATE state;                                //Process state
         unsigned int PID;                           //Unique process number ID
         List<mem::instrucion>::node* PC;            //Program Counter
-        unsigned int Privalage;     //Privalage
+        unsigned int Privalage;                     //Privalage
 
         // priorities, scheduling queue pointers
         unsigned int priority;

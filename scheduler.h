@@ -14,7 +14,7 @@
 #include "pcb.h"
 
 
-//Here there will be the scheduler
+//Process scheduler
 //multilevel Feedback Queue
 class Sched{
 
@@ -30,10 +30,13 @@ class Sched{
     //List<int> queue2;   //round robin
     //List<int> queue3;   //first come first serve
 
+    //move pcb running to back of the queue 
     void updateQ();
 
+    //FIX or DELETE
     int manage();
- 
+
+    //runs the processes in READY
     void running();
 };
 
