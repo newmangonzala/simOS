@@ -5,6 +5,7 @@
 #include <time.h>
 #include <chrono>
 #include <fstream>
+#include <thread> 
 
 #include "rapidxml.hpp"
 
@@ -56,11 +57,11 @@ int main(){
     int numPr;
     cin >> numPr;
 
-
     // mem M1(1);
     mem M1(numPr);
     vector<mem::instrucion> t = M1.loadApps();
     
+    /*
     List<mem::instrucion> q = M1.memory1[0];
     List<mem::instrucion>::node* h = q.getHead();
     mem::instrucion z = h->data;
@@ -70,12 +71,7 @@ int main(){
     h = h->next;
     z = h->data;
     cout << z.type << endl;
-
-    /*
-    for(int i = 0; i < M1.memory1[0].size(); i++){
-        cout << M1.memory1[0][i].type << " ";
-        cout << M1.memory1[0][i].time << endl;
-    }*/
+    */
 
     //cout << M1.memory1.size() << endl;
     //cout << M1.numProcess << endl;   
@@ -84,24 +80,42 @@ int main(){
 
     Sched S1(queue1);
 
+    
 
 
 
-    //for(int i = 0; i < M1.memory1.size(); i++){
-    //    PrBkCtr pcb(M1.memory1[0].head);
-    //    auto x = M1.memory1[0].head;
-    //    auto n = x->data.type;
-        //x = x->next;
-        //cout << t  << endl;
-        //t = x->data.type;
-        //cout << t << endl;
-        
-    //    S1.queue1->insertNode(pcb);
-    //}
-        
+    for(int i = 0; i < M1.memory1.size(); i++){
+        PrBkCtr pcb(M1.memory1[i].getHead());
+
+        //List<mem::instrucion>::node* d = pcb.PC;
+        //mem::instrucion z = d->data;
+        //cout << z.type << endl;
+       
+        pcb.state = READY;              //change PCB state to READY
+        S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+    }
+
+    
+
+    S1.running();
+/*
+    List<PrBkCtr>::node* h2 = S1.queue1->getHead();
+    PrBkCtr w = h2->data;
+    List<mem::instrucion>::node* r = w.PC;
+    mem::instrucion b = r->data;
+    cout << b.type << endl;
+    cout << w.PID << endl;
+    cout << "pcb state: " << w.state << endl;
+
+    h2 = h2->next;
+    w = h2->data;
+    r = w.PC;
+    b = r->data;
+    cout << b.type << endl;
+    cout << w.PID << endl;
+*/
   
-    auto l = M1.memory1[0].getHead()->data.type;
-    //cout << l << endl;
+        
     
 /*
     //PrBkCtr pcb1;

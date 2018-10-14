@@ -2,7 +2,7 @@
 
 
 PrBkCtr::PrBkCtr(){
-    id++;
+    //id++;
 
     Registers.R0 = "";        //CPU register
     Registers.R1 = "";  
@@ -20,6 +20,11 @@ PrBkCtr::PrBkCtr(){
 }
 
 PrBkCtr::PrBkCtr(List<mem::instrucion>::node* v){
-
+    id++;
     PC = v;
+    PID = id;
+    state = NEW;
+
+    //std::cout << "id :" << id << std::endl;
+
 }

@@ -17,6 +17,7 @@ class PrBkCtr{
 
         PrBkCtr();
         PrBkCtr(List<mem::instrucion>::node*);
+    
 
 
         struct Registers{           //CPU register

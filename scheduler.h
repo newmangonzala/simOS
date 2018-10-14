@@ -26,7 +26,7 @@ class Sched{
     Sched(List<PrBkCtr>&);
     //Sched();
 
-    //timer time1;
+    int qtime = 20;
 
     List<PrBkCtr>* queue1;   //round robin //this is the ready queue
     //List<int> queue2;   //round robin
@@ -36,7 +36,7 @@ class Sched{
 
     int manage();
  
-    void maintanance();
+    void running();
 };
 
 
