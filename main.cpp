@@ -53,26 +53,13 @@ int main(){
     std::cout << dif.count() << std::endl;
    
 */
-
     int numPr;
+    cout << "Please enter numbers of processes to be created" << endl;
     cin >> numPr;
 
-    // mem M1(1);
     mem M1(numPr);
     vector<mem::instrucion> t = M1.loadApps();
     
-    /*
-    List<mem::instrucion> q = M1.memory1[0];
-    List<mem::instrucion>::node* h = q.getHead();
-    mem::instrucion z = h->data;
-
-    cout << z.type << endl;
-
-    h = h->next;
-    z = h->data;
-    cout << z.type << endl;
-    */
-
     //cout << M1.memory1.size() << endl;
     //cout << M1.numProcess << endl;   
 
@@ -98,11 +85,7 @@ int main(){
     
 
     S1.running();
-    struct A{
-        string a = "yield";
-    }B;
 
-    string g = B.a;
 
    // cout << "///////" << g.compare("H") << endl;
 /*

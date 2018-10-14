@@ -1,7 +1,5 @@
 #include "timer.h"
 
-
-
 using namespace std::chrono;
 
 std::time_t timer::getTime(){

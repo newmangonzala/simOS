@@ -11,18 +11,18 @@
         <action time="0">"yield"</action>
     </app>
     <app>
-        <action time="40">"io"</action>
-        <action time="30">"io"</action>
+        <action time="40">"io3"</action>
+        <action time="30">"io3.2"</action>
         <action time="0">"yield"</action>
     </app>
     <app>
-        <action time="40">"calculate"</action>
-        <action time="30">"calculate"</action>
+        <action time="40">"calculate4"</action>
+        <action time="30">"calculate4.1"</action>
         <action time="0">"yield"</action>
     </app>
     <app>
-        <action time="40">"io"</action>
-        <action time="30">"io"</action>
+        <action time="40">"io5"</action>
+        <action time="30">"io5.1"</action>
         <action time="0">"yield"</action>
     </app>
 </Processes>

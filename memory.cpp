@@ -48,7 +48,13 @@ vector<mem::instrucion> mem::loadApps(){
         //load proccess into memory
         memory1.push_back(app1);
 
-        app = app->next_sibling();
+        if(app->next_sibling() == NULL){
+            app = root_node->first_node("app");
+        }
+        else{
+            app = app->next_sibling();
+        }
+        
     }
 
 

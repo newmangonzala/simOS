@@ -1,12 +1,7 @@
 #ifndef PCB_H
 #define PCB_H
 
-
-
 #include <string>
-
-
-
 
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
 
@@ -18,9 +13,7 @@ class PrBkCtr{
         PrBkCtr();
         PrBkCtr(List<mem::instrucion>::node*);
     
-
-
-        struct Registers{           //CPU register
+        struct Registers{           //CPU registers
             string R0;
             string R1;
             string R2;
@@ -28,7 +21,7 @@ class PrBkCtr{
             string R4;
         }Registers; 
         STATE state;   //Process state {new, ready, running, waiting, terminated}
-        unsigned int PID;           //Process number
+        unsigned int PID;                           //Unique process number ID
         List<mem::instrucion>::node* PC;            //Program Counter
         unsigned int Privalage;     //Privalage
 
@@ -37,7 +30,7 @@ class PrBkCtr{
         unsigned int queue;
         
         // memory allocated
-        unsigned int address;
+        //unsigned int address;  //might not need this
            
         unsigned int IOinfo;
         
@@ -46,8 +39,6 @@ class PrBkCtr{
             //CPU used
             //
         //}accounting;
-
-       // mem::instrucion l;
 
 };
 

@@ -33,6 +33,7 @@ class List{
 		~List();
 		void insertNode(type);  //insert Node before the the tail
 		void deleteNode();      //deletes node from the list
+		void deleteHead();      //deletes node from the list
 		auto getHead();
 		//type getTail();
 		bool isEmpty();
@@ -118,6 +119,24 @@ void List<type>::deleteNode(){
 			head = NULL;
 			tail = NULL;
 		}
+	}
+}
+
+template <class type>
+void List<type>::deleteHead(){
+	
+	
+	if(head!=NULL){
+		
+		node *ptr; 
+		ptr = head; 
+
+		head = head->next;
+		delete ptr;
+		if(head == tail){
+			tail = NULL;
+		}
+
 	}
 }
 

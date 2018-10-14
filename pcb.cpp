@@ -2,7 +2,6 @@
 
 
 PrBkCtr::PrBkCtr(){
-    //id++;
 
     Registers.R0 = "";        //CPU register
     Registers.R1 = "";  
@@ -10,21 +9,14 @@ PrBkCtr::PrBkCtr(){
     Registers.R3 = "";  
     Registers.R4 = "";  
     
-
     state = NEW;
     PID = id;
-    //PC = 0;
     Privalage = 0;
-
-
 }
 
 PrBkCtr::PrBkCtr(List<mem::instrucion>::node* v){
-    id++;
-    PC = v;
-    PID = id;
-    state = NEW;
-
-    //std::cout << "id :" << id << std::endl;
-
+    id++;  
+    PC = v;     //PC points to current instruction
+    PID = id;   //unique ID 
+    state = NEW;    //State of the process
 }

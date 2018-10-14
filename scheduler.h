@@ -11,7 +11,6 @@
 
 #include "linkedlist.h"
 
-//#include "memory.h"
 #include "pcb.h"
 
 
@@ -20,19 +19,16 @@
 class Sched{
 
     
-    
     public:
     
     Sched(List<PrBkCtr>&);
     //Sched();
 
-    int qtime = 20;
+    int qtime = 20; //20 milliseconds
 
     List<PrBkCtr>* queue1;   //round robin //this is the ready queue
     //List<int> queue2;   //round robin
     //List<int> queue3;   //first come first serve
-
-
 
     void updateQ();
 
