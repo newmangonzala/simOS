@@ -68,6 +68,18 @@ void Sched::running(){
                 queue1->deleteHead();
                 continue;
             }
+            if(c.compare("\"fork\"") == 0){
+
+                cout << "forking " << w->PID << endl;
+                auto tmp = w->baseAddress;
+                
+
+                w->state = WAITING; //updating state to terminated
+                
+                continue;
+            }
+
+
             //update PC
             w->PC = r->next;
 

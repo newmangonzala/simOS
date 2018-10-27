@@ -23,7 +23,8 @@ class PrBkCtr{
         }Registers; 
         STATE state;                                //Process state
         unsigned int PID;                           //Unique process number ID
-        unsigned int ParentPID;                           //Unique process number ID
+        unsigned int ParentPID;                     
+        string baseAddress;
         List<mem::instrucion>::node* PC;            //Program Counter
         unsigned int Privalage;                     //Privalage
 

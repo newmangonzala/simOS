@@ -73,6 +73,7 @@ int main(){
         PrBkCtr pcb(M1.qOfPr[i].getHead());
 
         pcb.state = READY;              //change PCB state to READY
+        pcb.baseAddress = M1.memOfProcesses[i];
         S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
     }
 

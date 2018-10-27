@@ -46,31 +46,11 @@ void mem::loadApps(){
 
     for (int i = 1; i <= numProcess; i++){
         
-        /*
-        //iterate throught the app to get all the instructions
-        for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
-            
-            string c = (inst->name());
-            //if(c.compare("fork") == 0){
-            //    continue;
-            //}
-
-            I1.type = inst->value();
-
-            rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
-
-            //if(t != 0){
-            //    I1.time = stoi(t->value());
-            //}
-
-            app1.insertNode(I1);
-        }
-        */
-
+ 
         xml_node<char>* root = tmpPr.clone_node(app);
 
         tmpPr.append_node(root);
-        string xml_as_string;
+        string xml_as_string = "";
         print(std::back_inserter(xml_as_string), tmpPr);
         //std::cout << xml_as_string << std::endl;
 
@@ -78,7 +58,8 @@ void mem::loadApps(){
         //load proccess into memory
         memOfProcesses.push_back(xml_as_string);
 
-        
+    
+        tmpPr.remove_first_node();
 
         //if last app then restart
         if(app->next_sibling() == NULL){
@@ -133,6 +114,40 @@ void mem::loadPCBs(){
         }
         qOfPr.push_back(app1);
     }
+
+    return;
+}
+
+void mem::loadApp(string child){
+
+xml_document<> doc;
+doc.parse<0>(&child[0]);
+
+List<mem::instrucion> app1;
+
+instrucion I;
+
+xml_node<> * app = doc.first_node("app");
+
+//iterate throught the app to get all the instructions
+        for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
+            
+            string c = (inst->name());
+            //if(c.compare("fork") == 0){
+            //    continue;
+            //}
+
+            I.type = inst->value();
+
+            rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+
+            if(t != 0){
+                I.time = stoi(t->value());
+            }
+
+            app1.insertNode(I);
+        }
+        qOfPr.push_back(app1);
 
     return;
 }

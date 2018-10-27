@@ -23,12 +23,12 @@ class mem{
     struct instrucion{
         std::string type;
         int time;
-
     };
 
     int numProcess;
     void loadApps();     //this is the loader
     void loadPCBs();
+    void loadApp(string);
     vector<List<mem::instrucion>> qOfPr;
     vector<std::string> memOfProcesses;
 

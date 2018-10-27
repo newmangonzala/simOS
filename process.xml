@@ -21,23 +21,23 @@
 
         <action time="0">"yield"</action>
     </app>
- -->   
+   -->
     <app>
         <action time="40">"io"</action>
         <action time="70">"calculate"</action>
-        <fork>
+        <action>"fork"
             <app>
                 <action time="40">"io"</action>
-                <action time="70">"calculate"</action>
+                <action time="99">"calculate"</action>
                 <action time="0">"yield"</action>
             </app>
-        </fork>
+        </action>
         <action time="0">"yield"</action>
     </app>
-
+ 
     <app>
-        <action time="40">"io"</action>
-        <action time="70">"calculate"</action>
+        <action time="50">"io"</action>
+        <action time="35">"calculate"</action>
         <action time="0">"yield"</action>
     </app>
     <app>
