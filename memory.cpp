@@ -40,27 +40,35 @@ void mem::loadApps(){
 
     xml_node<> * app = root_node->first_node("app");
 
+    //xml_node<> * inst = app->first_node();
+
     
     
 
 
     for (int i = 1; i <= numProcess; i++){
+
+        List<string> instructions;
         
- 
-        xml_node<char>* root = tmpPr.clone_node(app);
+        for (xml_node<> * inst = app->first_node(); inst; inst = inst->next_sibling()){
+            xml_node<char>* SInst = tmpPr.clone_node(inst);
 
-        tmpPr.append_node(root);
-        string xml_as_string = "";
-        print(std::back_inserter(xml_as_string), tmpPr);
-        //std::cout << xml_as_string << std::endl;
+            tmpPr.append_node(SInst);
+            string xml_as_string = "";
+            print(std::back_inserter(xml_as_string), tmpPr);
+            //std::cout << "-----\n" << xml_as_string << std::endl;
 
-    
+            instructions.insertNode(xml_as_string);
+
+            tmpPr.remove_first_node();
+
+        }
+        //std::cout << "/////////////////////////////////////////\n"  << std::endl;
+
         //load proccess into memory
-        memOfProcesses.push_back(xml_as_string);
+        memOfProcesses.push_back(instructions);
 
     
-        tmpPr.remove_first_node();
-
         //if last app then restart
         if(app->next_sibling() == NULL){
             app = root_node->first_node("app");
@@ -84,70 +92,51 @@ void mem::loadPCBs(){
 
     for(int i = 0; i < memOfProcesses.size(); i++){
 
-        auto tmp = memOfProcesses[i];
-
-        doc.parse<0>(&tmp[0]);
-
+        auto listOfInst = memOfProcesses[i];
+        
         List<mem::instrucion> app1;
 
-        instrucion I;
+        for(List<std::string>::node* tmp = listOfInst.getHead(); tmp != NULL; tmp = tmp->next){
+            auto Sinst = tmp->data;
 
-        xml_node<> * app = doc.first_node("app");
+            std::cout << "-----\n" << Sinst << std::endl;
+/*
+            doc.parse<0>(&Sints[0]);
 
-    //iterate throught the app to get all the instructions
-        for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
             
-            string c = (inst->name());
-            //if(c.compare("fork") == 0){
-            //    continue;
-            //}
+            instrucion I;
 
-            I.type = inst->value();
+            //iterate throught the app to get all the instructions
+            for (xml_node<> * inst = doc.first_node(); inst; inst = inst->next_sibling()){
+                
+                I.type = inst->value();
 
-            rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+                rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
 
-            if(t != 0){
-                I.time = stoi(t->value());
+                if(t != 0){
+                    I.time = stoi(t->value());
+                }
+
+                app1.insertNode(I);
             }
+            */
 
-            app1.insertNode(I);
         }
+
+        
+
+
+        
         qOfPr.push_back(app1);
+        
     }
 
     return;
 }
 
-void mem::loadApp(string child){
+void mem::loadApp(List<std::string>::node* ptr){
 
-xml_document<> doc;
-doc.parse<0>(&child[0]);
 
-List<mem::instrucion> app1;
-
-instrucion I;
-
-xml_node<> * app = doc.first_node("app");
-
-//iterate throught the app to get all the instructions
-        for (xml_node<> * inst = app->first_node("action"); inst; inst = inst->next_sibling()){
-            
-            string c = (inst->name());
-            //if(c.compare("fork") == 0){
-            //    continue;
-            //}
-
-            I.type = inst->value();
-
-            rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
-
-            if(t != 0){
-                I.time = stoi(t->value());
-            }
-
-            app1.insertNode(I);
-        }
-        qOfPr.push_back(app1);
 
     return;
 }

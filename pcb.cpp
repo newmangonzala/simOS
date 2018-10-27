@@ -21,3 +21,11 @@ PrBkCtr::PrBkCtr(List<mem::instrucion>::node* v){
     ParentPID = 0; 
     state = NEW;    //State of the process
 }
+
+PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
+    id++;  
+    PCtmp = nextInst;     //PC points to current instruction
+    PID = id;   //unique ID
+    ParentPID = 0; 
+    state = NEW;    //State of the process
+}

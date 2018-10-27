@@ -14,15 +14,20 @@ void Sched::updateQ(){
     List<PrBkCtr>::node* head = queue1->getHead();
     List<PrBkCtr>::node* tail = queue1->getTail();
     List<PrBkCtr>::node* prev = head->next;
-    head->next = NULL;
+    
 
     if(head != tail){
         tail->next = head;
         
     }
+    else{
+        return;
+    }
+    
     
     queue1->head = prev;
     queue1->tail = head;
+    queue1->tail->next = NULL;
   
  /*
     PrBkCtr* w = &queue1->head->data;
@@ -97,4 +102,85 @@ void Sched::running(){
     return;
 
 }
+
+void Sched::running2(){
+//run until Ready queue is empty
+    while(!queue1->isEmpty()){
+
+        List<PrBkCtr>::node* head = queue1->getHead();
+        PrBkCtr* w = &head->data;
+        List<string>::node* r = w->PCtmp;
+        basic_string<char> toParse = r->data;
+        basic_string<char>* b = &r->data;
+
+
+        xml_document<> doc;
+        doc.parse<0>(&(toParse)[0]);
+        xml_node<> * inst = doc.first_node();
+        rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+
+        
+        int duration = stoi(t->value());
+        w->state = RUNNING;     //updating state to running
+        cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+        
+        //inst->remove_first_attribute();
+        if((duration - qtime) <= 0){
+            //wait for qtime - duration
+            std::this_thread::sleep_for(std::chrono::microseconds(duration));
+            b->replace(14,2,"00");
+            //cout<< "NEW " << r->data << endl;
+            
+            cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
+            
+            //check if instruction was the last from process
+
+            
+            toParse = r->next->data;
+            doc.parse<0>(&(toParse)[0]);
+            inst = doc.first_node();
+            string c = inst->value();
+            //cout << c << endl;
+            if(c.compare("\"yield\"") == 0){
+
+                cout << "deleting pcb " << w->PID << endl;
+                w->state = TERMINANTED; //updating state to terminated
+                queue1->deleteHead();
+                continue;
+            }
+          
+            /*if(c.compare("\"fork\"") == 0){
+
+                cout << "forking " << w->PID << endl;
+                auto tmp = w->baseAddress;
+                
+
+                w->state = WAITING; //updating state to terminated
+                
+                continue;
+            }*/
+
+
+            //update PC
+            w->PCtmp = r->next;
+
+        }
+        else{
+            //wait for qtime
+            std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
+            int timep = duration - qtime;
+            string tn = to_string(timep);
+            b->replace(14,2,tn);
+            //cout<< "NEW " << r->data << endl;
+        }
+        //move current process to the back of the queue
+        updateQ();
+        
+
+    }
+    
+
+    return;
+}
+
  

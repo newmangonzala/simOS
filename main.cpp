@@ -58,27 +58,56 @@ int main(){
     cin >> numPr;
 
     mem M1(numPr);
-    //vector<mem::instrucion> t = M1.loadApps();
+
     M1.loadApps();
-    M1.loadPCBs();
-    //cout << M1.memory1.size() << endl;
-    //cout << M1.numProcess << endl;   
+    //M1.loadPCBs();
+ 
+ /*
+    auto app = M1.memOfProcesses[1];
+    List<std::string>::node* tmp = app.getHead();
+    //tmp = tmp->next;
+    List<std::string>::node* ptr = tmp->next;
+
+    PrBkCtr pcb(ptr);
+
+
+    cout << ptr->data << endl;
+
+    cout << pcb.PCtmp->data <<endl;
+
+    auto ti = pcb.PCtmp->data;
+    basic_string<char>* tp = &pcb.PCtmp->data;
+
+    xml_document<> doc;
+    doc.parse<0>(&ti[0]);
+    xml_node<> * inst = doc.first_node();
+    rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+    int tmpTime = stoi(t->value());
+
+    cout << tmpTime << endl;
+
+    int replace = tmpTime - 20;
+    inst->remove_first_attribute();
+    tp->replace(14,2,"99");
+
+    cout << pcb.PCtmp->data <<endl;
+
+*/
+
 
     List<PrBkCtr> queue1;
 
 
     Sched S1(queue1);
 
-    for(int i = 0; i < M1.qOfPr.size(); i++){
-        PrBkCtr pcb(M1.qOfPr[i].getHead());
+    for(int i = 0; i < M1.memOfProcesses.size(); i++){
+        PrBkCtr pcb(M1.memOfProcesses[i].getHead());
 
         pcb.state = READY;              //change PCB state to READY
-        pcb.baseAddress = M1.memOfProcesses[i];
         S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
     }
 
-    S1.running();
-      
+    S1.running2();
 
 /*
     List<PrBkCtr>::node* h2 = S1.queue1->getHead();
@@ -98,54 +127,6 @@ int main(){
 */
   
         
-    
-/*
-    //PrBkCtr pcb1;
-
-    //List<PrBkCtr> queue1; //READY
-
-    
-
-    Sched S1(queue1);
-
-    cout << &queue1 << endl;
-    cout << S1.queue1 << endl;
-
-    queue1.insertNode(pcb1);  //these two are equev
-    //S1.queue1->insertNode(pcb1);
-
-
-    auto t = S1.queue1->getHead();
-    auto g = queue1.getHead();
-
-    cout << t << endl; //equ
-    cout << g << endl;
-
-    List<int> L1;
-    L1.insertNode(5);
-    auto m = L1.getHead();
-    cout << m->data << endl;
-
-  
-    PrBkCtr* f = &(t->data);
-    PrBkCtr* c = &(g->data);
-    cout << &(*f) << endl;
-    cout << &(*c) << endl;
- 
-    f->PID = 33;
-
-    cout << f->PID << endl;
-    cout << c->PID << endl;
-
-*/
-
-
-
-
-
-    
-
-    
 
     /*
     log(logINFO) << "foo " << "bar " << "baz";

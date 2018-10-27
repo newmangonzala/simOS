@@ -38,6 +38,7 @@ class Sched{
 
     //runs the processes in READY
     void running();
+    void running2();
 };
 
 

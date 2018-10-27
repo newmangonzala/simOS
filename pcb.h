@@ -13,6 +13,7 @@ class PrBkCtr{
 
         PrBkCtr();
         PrBkCtr(List<mem::instrucion>::node*);
+        PrBkCtr(List<std::string>::node*);
     
         struct Registers{                           //CPU registers
             string R0;
@@ -26,6 +27,7 @@ class PrBkCtr{
         unsigned int ParentPID;                     
         string baseAddress;
         List<mem::instrucion>::node* PC;            //Program Counter
+        List<std::string>::node* PCtmp;
         unsigned int Privalage;                     //Privalage
 
         // priorities, scheduling queue pointers
