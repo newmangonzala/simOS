@@ -12,9 +12,15 @@ int Sched::manage(){
 void Sched::updateQ(){
 
     List<PrBkCtr>::node* head = queue1->getHead();
+    List<PrBkCtr>::node* tail = queue1->getTail();
     List<PrBkCtr>::node* prev = head->next;
     head->next = NULL;
-    queue1->tail->next = head;
+
+    if(head != tail){
+        tail->next = head;
+        
+    }
+    
     queue1->head = prev;
     queue1->tail = head;
   
@@ -51,7 +57,7 @@ void Sched::running(){
             //wait for qtime - duration
             std::this_thread::sleep_for(std::chrono::microseconds(duration));
             b->time = 0;
-            cout << "current process: "<< w->PID << " of inst: " << b->type << " has been terminated" << endl;
+            cout << "current process: "<< w->PID << " of name: " << b->type << " has been terminated" << endl;
             
             //check if instruction was the last from process
             string c = (r->next->data).type;

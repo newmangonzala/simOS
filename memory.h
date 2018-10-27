@@ -27,8 +27,10 @@ class mem{
     };
 
     int numProcess;
-    vector<mem::instrucion> loadApps();     //this is the loader
-    vector<List<mem::instrucion> > memory1;
+    void loadApps();     //this is the loader
+    void loadPCBs();
+    vector<List<mem::instrucion>> qOfPr;
+    vector<std::string> memOfProcesses;
 
 };
 

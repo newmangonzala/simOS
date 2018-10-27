@@ -17,6 +17,7 @@ PrBkCtr::PrBkCtr(){
 PrBkCtr::PrBkCtr(List<mem::instrucion>::node* v){
     id++;  
     PC = v;     //PC points to current instruction
-    PID = id;   //unique ID 
+    PID = id;   //unique ID
+    ParentPID = 0; 
     state = NEW;    //State of the process
 }

@@ -32,6 +32,7 @@ class List{
 		void deleteNode();      //deletes node from the list
 		void deleteHead();      //deletes head from the list
 		auto getHead();			//returns head
+		auto getTail();
 		bool isEmpty();			//checks if empty
 
 		//functions recycled - might be useful
@@ -52,7 +53,12 @@ bool List<type>::isEmpty(){
 template <class type>
 auto List<type>::getHead(){
 		return head;
-}  
+}
+
+template <class type>
+auto List<type>::getTail(){
+		return tail;
+} 
 
 template <class type>
 List<type>::List(){
@@ -122,9 +128,6 @@ void List<type>::deleteHead(){
 
 		head = head->next;
 		delete ptr;
-		if(head == tail){
-			tail = NULL;
-		}
 
 	}
 }

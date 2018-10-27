@@ -58,23 +58,26 @@ int main(){
     cin >> numPr;
 
     mem M1(numPr);
-    vector<mem::instrucion> t = M1.loadApps();
-    
+    //vector<mem::instrucion> t = M1.loadApps();
+    M1.loadApps();
+    M1.loadPCBs();
     //cout << M1.memory1.size() << endl;
     //cout << M1.numProcess << endl;   
 
     List<PrBkCtr> queue1;
 
+
     Sched S1(queue1);
 
-    for(int i = 0; i < M1.memory1.size(); i++){
-        PrBkCtr pcb(M1.memory1[i].getHead());
+    for(int i = 0; i < M1.qOfPr.size(); i++){
+        PrBkCtr pcb(M1.qOfPr[i].getHead());
 
         pcb.state = READY;              //change PCB state to READY
         S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
     }
 
     S1.running();
+      
 
 /*
     List<PrBkCtr>::node* h2 = S1.queue1->getHead();
