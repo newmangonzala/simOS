@@ -70,11 +70,11 @@ void mem::loadApps(){
 
     
         //if last app then restart
-        if(app->next_sibling() == NULL){
+        if(app->next_sibling("app") == NULL){
             app = root_node->first_node("app");
         }
         else{
-            app = app->next_sibling();
+            app = app->next_sibling("app");
         }
         
     }
@@ -99,7 +99,7 @@ void mem::loadPCBs(){
         for(List<std::string>::node* tmp = listOfInst.getHead(); tmp != NULL; tmp = tmp->next){
             auto Sinst = tmp->data;
 
-            std::cout << "-----\n" << Sinst << std::endl;
+            //std::cout << "-----\n" << Sinst << std::endl;
 /*
             doc.parse<0>(&Sints[0]);
 
@@ -140,4 +140,5 @@ void mem::loadApp(List<std::string>::node* ptr){
 
     return;
 }
+
 

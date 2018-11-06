@@ -59,8 +59,10 @@ int main(){
 
     mem M1(numPr);
 
+    //mem::createMailbox *tmp = new mem::createMailbox;
+    //M1.mailbox = tmp;
+
     M1.loadApps();
-    //M1.loadPCBs();
  
  /*
     auto app = M1.memOfProcesses[1];
@@ -98,16 +100,29 @@ int main(){
     List<PrBkCtr> queue1;
 
 
-    Sched S1(queue1);
+    Sched S1(queue1, M1);
 
     for(int i = 0; i < M1.memOfProcesses.size(); i++){
         PrBkCtr pcb(M1.memOfProcesses[i].getHead());
+        M1.mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+                            auto search = M1.mailboxes.find(pcb.mailbox->id);
+                            //search->second->push_front("test");
+                            //cout <<  &search->second << endl;
+                    //.push_front("test");
 
         pcb.state = READY;              //change PCB state to READY
         S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
     }
 
+
     S1.running2();
+
+    //auto search = M1.mailboxes.find(2);
+    //search->second->push_front("test");
+    //cout << search->second->back() << endl;
+
+
+    
 
 /*
     List<PrBkCtr>::node* h2 = S1.queue1->getHead();

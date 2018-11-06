@@ -5,6 +5,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <deque>
+#include <list>
+#include <unordered_map>
 
 #include "rapidxml.hpp"
 
@@ -31,6 +34,13 @@ class mem{
     void loadApp(List<std::string>::node*);
     vector<List<mem::instrucion>> qOfPr;
     vector<List<std::string>> memOfProcesses;
+
+    struct createMailbox{
+        deque<string> messages;
+        int id;
+    };
+    
+    unordered_map<int, deque<string>*> mailboxes;
 
 };
 

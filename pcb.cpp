@@ -28,4 +28,7 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     PID = id;   //unique ID
     ParentPID = 0; 
     state = NEW;    //State of the process
+
+    mailbox = new mem::createMailbox;
+    mailbox->id = id;
 }

@@ -21,7 +21,7 @@ class Sched{
     
     public:
     
-    Sched(List<PrBkCtr>&);
+    Sched(List<PrBkCtr>& ,mem&);
     //Sched();
 
     int qtime = 20; //20 milliseconds
@@ -29,6 +29,8 @@ class Sched{
     List<PrBkCtr>* queue1;   //round robin //this is the ready queue
     //List<int> queue2;   //round robin
     //List<int> queue3;   //first come first serve
+
+    mem* M1;
 
     //move pcb running to back of the queue 
     void updateQ();

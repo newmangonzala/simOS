@@ -38,6 +38,10 @@ class PrBkCtr{
         //unsigned int address;  //might not need this
            
         unsigned int IOinfo;
+        bool parent;
+        vector<unsigned int> childs;
+
+        mem::createMailbox *mailbox;
         
         //struct accounting{
             //time constraints

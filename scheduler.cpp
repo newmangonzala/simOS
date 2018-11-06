@@ -1,7 +1,10 @@
 #include "scheduler.h"
 #include <thread> 
 
-Sched::Sched(List<PrBkCtr>& Q1){ queue1 = &Q1; }
+Sched::Sched(List<PrBkCtr>& Q1, mem& A){ 
+    queue1 = &Q1;
+    M1 = &A;
+}
 //Sched::Sched(){}
 
 int Sched::manage(){
@@ -149,16 +152,79 @@ void Sched::running2(){
                 continue;
             }
           
-            /*if(c.compare("\"fork\"") == 0){
+            c = inst->name();
+            if(c.compare("fork") == 0){
 
                 cout << "forking " << w->PID << endl;
-                auto tmp = w->baseAddress;
-                
+                xml_document<> doc;
+                xml_node<> * root_node;
+                ifstream file("process.xml");
+                vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
-                w->state = WAITING; //updating state to terminated
+                //make sure to zero terminate the buffer
+                buffer.push_back('\0');
+
+                doc.parse<0>(&buffer[0]);
+                root_node = doc.first_node("Processes");
+                root_node = root_node->first_node("child");
+
+
+                List<string> instructions;
+                xml_document<> tmpPr;
+ 
+                for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
+                    if(inst == 0){
+                        cout << "no node" << endl;
+                        continue;
+                    }
+
+                    xml_node<char>* SInst = tmpPr.clone_node(inst);
+
+                    tmpPr.append_node(SInst);
+                    string xml_as_string = "";
+                    print(std::back_inserter(xml_as_string), tmpPr);
+                    //print instruction
+                    //std::cout << "-----\n" << xml_as_string << std::endl;
+
+                    instructions.insertNode(xml_as_string);
+
+                    tmpPr.remove_first_node();
+                }
+
+                PrBkCtr pcb(instructions.getHead());
+                pcb.state = READY;              //change PCB state to READY
+                pcb.parent = w->PID;
+                w->parent = true;
+                w->childs.push_back(pcb.PID);
+                queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+                M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+
+            }
+            else if(c.compare("send") == 0){
+                //cout << M1->numProcess << endl;
+                string tmpmail = inst->first_attribute("mailbox")->value();
+                cout << "child of current pr is " << w->childs[0] << endl;
+                if(tmpmail.compare("child") == 0){
+                    auto search = M1->mailboxes.find(w->childs[0]);
+                    search->second->push_front(inst->first_attribute("message")->value());
+                    //auto search = M1.mailboxes.find(pcb.mailbox->id);
+                    //cout << search->second->back() << endl;
+                    //cout << search->second << endl;
+                }
                 
-                continue;
-            }*/
+                //string me = inst->first_attribute("message")->value();
+                //M1->mailbox->messages.push_back(me);
+                //M1->mailbox->messages.pop_front();
+                //if (M1->mailbox->messages.back().compare("end") == 0){
+                //    cout << "SI" << endl;
+               // }
+            }
+            else if(c.compare("receive") == 0){
+                auto search = M1->mailboxes.find(w->id);
+                cout << search->second->back() << endl;
+            //    M1->mailbox->messages.pop_back();
+            }
+    
 
 
             //update PC
@@ -182,5 +248,6 @@ void Sched::running2(){
 
     return;
 }
+
 
  
