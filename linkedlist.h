@@ -102,19 +102,8 @@ void List<type>::deleteNode(){
 	if(head!=NULL){
 		
 		node *ptr; 
-		ptr = tail; 
-		if(head != tail){
-			while(ptr->next != head){
-				ptr = ptr->next;
-			}
-			free(head);
-			head = ptr;
-		}
-		else{
-			free(head);
-			head = NULL;
-			tail = NULL;
-		}
+
+
 	}
 }
 

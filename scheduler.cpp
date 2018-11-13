@@ -1,7 +1,7 @@
 #include "scheduler.h"
 #include <thread> 
 
-Sched::Sched(List<PrBkCtr>& Q1, mem& A){ 
+Sched::Sched(List<PrBkCtr*>& Q1, mem& A){ 
     queue1 = &Q1;
     M1 = &A;
 }
@@ -14,9 +14,9 @@ int Sched::manage(){
 //move current process to the back of the queue
 void Sched::updateQ(){
 
-    List<PrBkCtr>::node* head = queue1->getHead();
-    List<PrBkCtr>::node* tail = queue1->getTail();
-    List<PrBkCtr>::node* prev = head->next;
+    List<PrBkCtr*>::node* head = queue1->getHead();
+    List<PrBkCtr*>::node* tail = queue1->getTail();
+    List<PrBkCtr*>::node* prev = head->next;
     
 
     if(head != tail){
@@ -53,8 +53,8 @@ void Sched::running(){
     //run until Ready queue is empty
     while(!queue1->isEmpty()){
 
-        List<PrBkCtr>::node* head = queue1->getHead();
-        PrBkCtr* w = &head->data;
+        List<PrBkCtr*>::node* head = queue1->getHead();
+        PrBkCtr* w = head->data;
         List<mem::instrucion>::node* r = w->PC;
         mem::instrucion* b = &r->data;
         int duration = b->time;
@@ -110,8 +110,8 @@ void Sched::running2(){
 //run until Ready queue is empty
     while(!queue1->isEmpty()){
 
-        List<PrBkCtr>::node* head = queue1->getHead();
-        PrBkCtr* w = &head->data;
+        List<PrBkCtr*>::node* head = queue1->getHead();
+        PrBkCtr* w = head->data;
         List<string>::node* r = w->PCtmp;
         basic_string<char> toParse = r->data;
         basic_string<char>* b = &r->data;
@@ -146,9 +146,35 @@ void Sched::running2(){
             //cout << c << endl;
             if(c.compare("\"yield\"") == 0){
 
-                cout << "deleting pcb " << w->PID << endl;
-                w->state = TERMINANTED; //updating state to terminated
+                if(w->childs.size() > 0){
+                    auto childProcess = w->childs[0];           //get childs
+                    List<PrBkCtr*>::node* prev = head;          //get current process
+		            List<PrBkCtr*>::node* tmpPr = prev->next;
+                    PrBkCtr* tmp = tmpPr->data;
+
+                    while(tmp != childProcess){                 //iterate through each process to find child
+                        prev = tmpPr;
+                        tmpPr = tmpPr->next;
+                        tmp = tmpPr->data;
+                        
+                    }
+                    
+                    tmp->state = TERMINANTED;               //updating state of child to terminated
+                    cout << "child of parent " << w->PID << " with id of " << tmp->PID << " has been terminated" << endl; 
+                    prev->next = tmpPr->next;
+
+                    delete tmpPr;
+
+
+                }
+
+                w->state = TERMINANTED;                         //updating state to terminated
+
                 queue1->deleteHead();
+
+                cout << "process " << w->PID << " has been terminated" << endl;
+
+
                 continue;
             }
           
@@ -195,18 +221,20 @@ void Sched::running2(){
                 pcb.state = READY;              //change PCB state to READY
                 pcb.parent = w->PID;
                 w->parent = true;
-                w->childs.push_back(pcb.PID);
-                queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+                w->childs.push_back(&pcb);
+                queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
                 M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
 
             }
             else if(c.compare("send") == 0){
                 //cout << M1->numProcess << endl;
                 string tmpmail = inst->first_attribute("mailbox")->value();
-                cout << "child of current pr is " << w->childs[0] << endl;
+                cout << "child of current pr is " << w->childs[0]->PID << endl;
                 if(tmpmail.compare("child") == 0){
-                    auto search = M1->mailboxes.find(w->childs[0]);
+                    auto search = M1->mailboxes.find(w->childs[0]->PID);
                     search->second->push_front(inst->first_attribute("message")->value());
+                    
+                    
                     //auto search = M1.mailboxes.find(pcb.mailbox->id);
                     //cout << search->second->back() << endl;
                     //cout << search->second << endl;
@@ -249,5 +277,10 @@ void Sched::running2(){
     return;
 }
 
+/*
+void Sched::fork(){
 
- 
+
+
+    return;
+}*/

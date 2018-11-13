@@ -39,7 +39,7 @@ class PrBkCtr{
            
         unsigned int IOinfo;
         bool parent;
-        vector<unsigned int> childs;
+        vector<PrBkCtr*> childs;
 
         mem::createMailbox *mailbox;
         

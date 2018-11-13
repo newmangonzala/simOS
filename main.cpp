@@ -27,6 +27,9 @@
 
 #include "log.h"
 
+
+#include <cstdlib>
+
 using namespace std;
 using namespace rapidxml;
 
@@ -97,7 +100,7 @@ int main(){
 */
 
 
-    List<PrBkCtr> queue1;
+    List<PrBkCtr*> queue1;
 
 
     Sched S1(queue1, M1);
@@ -111,7 +114,7 @@ int main(){
                     //.push_front("test");
 
         pcb.state = READY;              //change PCB state to READY
-        S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+        S1.queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
     }
 
 
