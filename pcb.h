@@ -12,7 +12,7 @@ class PrBkCtr{
         static int id; //static id
 
         PrBkCtr();
-        PrBkCtr(List<mem::instrucion>::node*);
+        //PrBkCtr(List<mem::instrucion>::node*);
         PrBkCtr(List<std::string>::node*);
     
         struct Registers{                           //CPU registers

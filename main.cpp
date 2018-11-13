@@ -105,17 +105,53 @@ int main(){
 
     Sched S1(queue1, M1);
 
+/*
     for(int i = 0; i < M1.memOfProcesses.size(); i++){
-        PrBkCtr pcb(M1.memOfProcesses[i].getHead());
-        M1.mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
-                            auto search = M1.mailboxes.find(pcb.mailbox->id);
+        auto f = M1.memOfProcesses[i].getHead();
+        while(f != NULL){
+            cout << f->data << endl;
+            f = f->next;
+        }
+        cout << "------" << endl;
+
+    }*/
+
+
+    for(int i = 0; i < M1.memOfProcesses.size(); i++){
+
+        PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[i].getHead());
+        //M1.mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+                            //auto search = M1.mailboxes.find(pcb.mailbox->id);
                             //search->second->push_front("test");
                             //cout <<  &search->second << endl;
                     //.push_front("test");
 
-        pcb.state = READY;              //change PCB state to READY
-        S1.queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
+        pcb->state = READY;              //change PCB state to READY
+        
+        
+        S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+
+/*
+        cout << "DEBUG PCB " << pcb->PID << endl;
+        auto tf = pcb->PCtmp;
+        cout << "DEBUG G " << tf->data << endl;
+        
+        
+        S1.queue1->size();
+
+        List<PrBkCtr*>::node* head = S1.queue1->getHead();
+        PrBkCtr* h = head->data;
+        cout << "DEBUG H " << h->PCtmp->data << endl;
+
+        List<PrBkCtr*>::node* tail = S1.queue1->getTail();
+        PrBkCtr* t = tail->data;
+        cout << "DEBUG T " << t->PCtmp->data << endl;
+     */   
     }
+
+
+    
+    
 
 
     S1.running2();

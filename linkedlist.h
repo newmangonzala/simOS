@@ -34,6 +34,7 @@ class List{
 		auto getHead();			//returns head
 		auto getTail();
 		bool isEmpty();			//checks if empty
+		void size();
 
 		//functions recycled - might be useful
 		// display(ostream&);
@@ -119,6 +120,18 @@ void List<type>::deleteHead(){
 		delete ptr;
 
 	}
+}
+
+template <class type>
+void List<type>::size(){
+	node* ptr = head;
+	int size = 0;
+	while(ptr != NULL){
+		size++;
+		ptr = ptr->next;
+	}
+	cout << "current list has a size of " << size << endl;
+
 }
 
 /*

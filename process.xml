@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Processes>
 
+
+<!--
+
     <app>
         <action time="40">"io"</action>
         <action time="70">"calculate"</action>
@@ -14,7 +17,7 @@
         <receive time= "10">"receive from parent"</action>
         <action time="0">"yield"</action>
     </child>
-
+-->
  
     <app>
         <action time="50">"io"</action>

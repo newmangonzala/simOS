@@ -48,6 +48,7 @@ void Sched::updateQ(){
         //auto end = std::chrono::system_clock::now(); 
         //dif = end - start;
 
+/*
 void Sched::running(){
     
     //run until Ready queue is empty
@@ -104,7 +105,7 @@ void Sched::running(){
     }
     return;
 
-}
+}*/
 
 void Sched::running2(){
 //run until Ready queue is empty
@@ -181,49 +182,7 @@ void Sched::running2(){
             c = inst->name();
             if(c.compare("fork") == 0){
 
-                cout << "forking " << w->PID << endl;
-                xml_document<> doc;
-                xml_node<> * root_node;
-                ifstream file("process.xml");
-                vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-
-                //make sure to zero terminate the buffer
-                buffer.push_back('\0');
-
-                doc.parse<0>(&buffer[0]);
-                root_node = doc.first_node("Processes");
-                root_node = root_node->first_node("child");
-
-
-                List<string> instructions;
-                xml_document<> tmpPr;
- 
-                for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
-                    if(inst == 0){
-                        cout << "no node" << endl;
-                        continue;
-                    }
-
-                    xml_node<char>* SInst = tmpPr.clone_node(inst);
-
-                    tmpPr.append_node(SInst);
-                    string xml_as_string = "";
-                    print(std::back_inserter(xml_as_string), tmpPr);
-                    //print instruction
-                    //std::cout << "-----\n" << xml_as_string << std::endl;
-
-                    instructions.insertNode(xml_as_string);
-
-                    tmpPr.remove_first_node();
-                }
-
-                PrBkCtr pcb(instructions.getHead());
-                pcb.state = READY;              //change PCB state to READY
-                pcb.parent = w->PID;
-                w->parent = true;
-                w->childs.push_back(&pcb);
-                queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
-                M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+                fork(w);
 
             }
             else if(c.compare("send") == 0){
@@ -277,10 +236,52 @@ void Sched::running2(){
     return;
 }
 
-/*
-void Sched::fork(){
+
+void Sched::fork(PrBkCtr* w){
+
+                cout << "forking " << w->PID << endl;
+                xml_document<> doc;
+                xml_node<> * root_node;
+                ifstream file("process.xml");
+                vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+
+                //make sure to zero terminate the buffer
+                buffer.push_back('\0');
+
+                doc.parse<0>(&buffer[0]);
+                root_node = doc.first_node("Processes");
+                root_node = root_node->first_node("child");
 
 
+                List<string> instructions;
+                xml_document<> tmpPr;
+ 
+                for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
+                    if(inst == 0){
+                        cout << "no node" << endl;
+                        continue;
+                    }
+
+                    xml_node<char>* SInst = tmpPr.clone_node(inst);
+
+                    tmpPr.append_node(SInst);
+                    string xml_as_string = "";
+                    print(std::back_inserter(xml_as_string), tmpPr);
+                    //print instruction
+                    //std::cout << "-----\n" << xml_as_string << std::endl;
+
+                    instructions.insertNode(xml_as_string);
+
+                    tmpPr.remove_first_node();
+                }
+
+                PrBkCtr pcb(instructions.getHead());
+                pcb.state = READY;              //change PCB state to READY
+                pcb.parent = w->PID;
+                w->parent = true;
+                w->childs.push_back(&pcb);
+                queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
+                M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
 
     return;
-}*/
+}
