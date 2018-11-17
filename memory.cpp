@@ -7,6 +7,12 @@ using namespace rapidxml;
 
 mem::mem(int numPr){
     numProcess = numPr;
+    for(int i = 0 ; i < numFrames; i++){
+        freeFrames.push(i);
+        mainMem[i] = new short int[2];
+    }
+    currentFrameIndex = 0;
+
 }
 
 
@@ -141,4 +147,10 @@ void mem::loadApp(List<std::string>::node* ptr){
     return;
 }
 
+void mem::mmu(){
+
+
+
+    return;
+}
 

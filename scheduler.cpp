@@ -48,64 +48,6 @@ void Sched::updateQ(){
         //auto end = std::chrono::system_clock::now(); 
         //dif = end - start;
 
-/*
-void Sched::running(){
-    
-    //run until Ready queue is empty
-    while(!queue1->isEmpty()){
-
-        List<PrBkCtr*>::node* head = queue1->getHead();
-        PrBkCtr* w = head->data;
-        List<mem::instrucion>::node* r = w->PC;
-        mem::instrucion* b = &r->data;
-        int duration = b->time;
-        w->state = RUNNING;     //updating state to running
-        cout << "current process: "<< w->PID << " running inst: "  << b->type << "and has a current duration of: " << duration << endl;
-        
-        if((duration - qtime) <= 0){
-            //wait for qtime - duration
-            std::this_thread::sleep_for(std::chrono::microseconds(duration));
-            b->time = 0;
-            cout << "current process: "<< w->PID << " of name: " << b->type << " has been terminated" << endl;
-            
-            //check if instruction was the last from process
-            string c = (r->next->data).type;
-            if(c.compare("\"yield\"") == 0){
-
-                cout << "deleting pcb " << w->PID << endl;
-                w->state = TERMINANTED; //updating state to terminated
-                queue1->deleteHead();
-                continue;
-            }
-            if(c.compare("\"fork\"") == 0){
-
-                cout << "forking " << w->PID << endl;
-                auto tmp = w->baseAddress;
-                
-
-                w->state = WAITING; //updating state to terminated
-                
-                continue;
-            }
-
-
-            //update PC
-            w->PC = r->next;
-
-        }
-        else{
-            //wait for qtime
-            std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
-            b->time = duration - qtime;
-        }
-        //move current process to the back of the queue
-        updateQ();
-        
-
-    }
-    return;
-
-}*/
 
 void Sched::running2(){
 //run until Ready queue is empty
@@ -128,18 +70,24 @@ void Sched::running2(){
         w->state = RUNNING;     //updating state to running
         cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
         
+
+        auto f = inst->first_attribute("pages");
+        string s = f->value();
+        vector<int> pages = findPages(s);
+
+        
+        mmu(w, pages);
+
         //inst->remove_first_attribute();
         if((duration - qtime) <= 0){
             //wait for qtime - duration
             std::this_thread::sleep_for(std::chrono::microseconds(duration));
             b->replace(14,2,"00");
-            //cout<< "NEW " << r->data << endl;
             
             cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
             
             //check if instruction was the last from process
 
-            
             toParse = r->next->data;
             doc.parse<0>(&(toParse)[0]);
             inst = doc.first_node();
@@ -147,35 +95,7 @@ void Sched::running2(){
             //cout << c << endl;
             if(c.compare("\"yield\"") == 0){
 
-                if(w->childs.size() > 0){
-                    auto childProcess = w->childs[0];           //get childs
-                    List<PrBkCtr*>::node* prev = head;          //get current process
-		            List<PrBkCtr*>::node* tmpPr = prev->next;
-                    PrBkCtr* tmp = tmpPr->data;
-
-                    while(tmp != childProcess){                 //iterate through each process to find child
-                        prev = tmpPr;
-                        tmpPr = tmpPr->next;
-                        tmp = tmpPr->data;
-                        
-                    }
-                    
-                    tmp->state = TERMINANTED;               //updating state of child to terminated
-                    cout << "child of parent " << w->PID << " with id of " << tmp->PID << " has been terminated" << endl; 
-                    prev->next = tmpPr->next;
-
-                    delete tmpPr;
-
-
-                }
-
-                w->state = TERMINANTED;                         //updating state to terminated
-
-                queue1->deleteHead();
-
-                cout << "process " << w->PID << " has been terminated" << endl;
-
-
+                yield(w);
                 continue;
             }
           
@@ -212,10 +132,8 @@ void Sched::running2(){
             //    M1->mailbox->messages.pop_back();
             }
     
-
-
-            //update PC
-            w->PCtmp = r->next;
+            
+            w->PCtmp = r->next;     //update PC
 
         }
         else{
@@ -223,8 +141,7 @@ void Sched::running2(){
             std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
             int timep = duration - qtime;
             string tn = to_string(timep);
-            b->replace(14,2,tn);
-            //cout<< "NEW " << r->data << endl;
+            b->replace(14,2,tn);            
         }
         //move current process to the back of the queue
         updateQ();
@@ -282,6 +199,120 @@ void Sched::fork(PrBkCtr* w){
                 w->childs.push_back(&pcb);
                 queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
                 M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+
+    return;
+}
+
+void Sched::yield(PrBkCtr* w){
+
+    if(w->childs.size() > 0){
+        auto childProcess = w->childs[0];           //get childs
+        List<PrBkCtr*>::node* prev = queue1->getHead();         //get current process
+        List<PrBkCtr*>::node* tmpPr = prev->next;
+        PrBkCtr* tmp = tmpPr->data;
+
+        while(tmp != childProcess){                 //iterate through each process to find child
+            prev = tmpPr;
+            tmpPr = tmpPr->next;
+            tmp = tmpPr->data;
+            
+        }
+        
+        tmp->state = TERMINANTED;               //updating state of child to terminated
+        cout << "child of parent " << w->PID << " with id of " << tmp->PID << " has been terminated" << endl; 
+        prev->next = tmpPr->next;
+
+        delete tmpPr;
+
+
+    }
+
+    w->state = TERMINANTED;                         //updating state to terminated
+
+    queue1->deleteHead();
+
+    cout << "process " << w->PID << " has been terminated" << endl;
+
+
+    
+
+    return;
+}
+
+vector<int> Sched::findPages(string s){
+
+    vector<int> pages;
+
+    stringstream ss;
+
+    ss << s;
+
+    string temp;
+
+    int page;
+
+    while(!ss.eof()){
+
+        ss >> temp;
+        if(stringstream(temp) >> page){
+            pages.push_back(page);
+            //cout << page << endl;
+        } 
+        temp = "";
+    }
+
+    return pages;
+}
+
+void Sched::mmu(PrBkCtr* w, vector<int> pages){
+
+    for(int i = 0; i < pages.size(); i++){
+                
+        if(pages[i] > pages.size()){
+            continue; //FIX ME
+        }
+
+        if(!w->pgTbl->entries[pages[i]][0]){   //valid bit is 0; meaning is not in memory
+            //page is not in memory
+
+            if(M1->freeFrames.size() > 0){
+                
+                auto freeFrame = M1->freeFrames.front();
+                M1->freeFrames.pop();                               //pop free frame
+                w->pgTbl->entries[pages[i]][1] = freeFrame;         //map frame to page in page table
+                
+                M1->mainMem[freeFrame][0] = 0;                //change second chance bit to 0
+                M1->mainMem[freeFrame][1] = w->PID;           //store process id into frame, just for reference
+                
+            }
+            else{
+                // replace frames because there are not free frames
+                while(M1->mainMem[M1->currentFrameIndex][0]){                           //find frame with second chance bit 0
+                    M1->mainMem[M1->currentFrameIndex][1] = 0;                //change second chance bit to 0
+                    M1->currentFrameIndex++;
+                    continue; 
+                    
+                }
+                M1->mainMem[M1->currentFrameIndex][1] = w->PID;                    //replace page in current frame
+                //no need to set second chance to 0 since it was zero
+                //update table FIX ME
+                w->pgTbl->entries[pages[i]][1] = M1->currentFrameIndex;         //map frame to page in page table
+                
+
+            }
+            w->pgTbl->entries[pages[i]][0] = 1;                 //change valid bit to 1, meaning is now in Mmem
+            M1->currentFrameIndex++;                            //Increase index of mem
+        }
+        else{   //valid bit is 1 so page is in memory
+            
+            auto frame = w->pgTbl->entries[pages[i]][1];    //get location of page in Mmem; get frame
+            if(!M1->mainMem[frame][0]){
+                M1->mainMem[frame][1] = 1;                //change second chance bit to 1
+                
+            }
+        }
+        
+    }
 
     return;
 }

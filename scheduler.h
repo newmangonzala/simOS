@@ -4,6 +4,9 @@
 
 #include <iostream>
 #include <string>
+#include <sstream> 
+#include <queue>
+#include <exception>
 #include <vector>
 #include <fstream>
 
@@ -42,6 +45,10 @@ class Sched{
     void running();
     void running2();
     void fork(PrBkCtr*);
+    void yield(PrBkCtr*);
+    vector<int> findPages(string);
+    
+    void mmu(PrBkCtr*, vector<int>);
 };
 
 

@@ -33,4 +33,6 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
 
     mailbox = new mem::createMailbox;
     mailbox->id = id;
+
+    pgTbl =  new pageTable(1);
 }

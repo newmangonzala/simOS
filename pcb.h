@@ -42,6 +42,8 @@ class PrBkCtr{
         vector<PrBkCtr*> childs;
 
         mem::createMailbox *mailbox;
+
+        pageTable* pgTbl;
         
         //struct accounting{
             //time constraints

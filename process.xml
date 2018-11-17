@@ -2,49 +2,54 @@
 <Processes>
 
 
-<!--
+<!-- 
 
     <app>
-        <action time="40">"io"</action>
-        <action time="70">"calculate"</action>
+        <action time="40" pages="868">"io"</action>
+        <action time="70" pages="1710">"calculate"</action>
         <fork time="10">"fork"</fork>
         <send time= "10" mailbox="child" message="hello">"send to parent"</action>
         <action time="00">"yield"</action>
     </app>
-    <child>"test"
+    <child address="6255">"test"
         <action time="10">"calculatef"</action>
         <action time="30">"calculatef"</action>
         <receive time= "10">"receive from parent"</action>
         <action time="0">"yield"</action>
     </child>
+
+--> 
+    <app>
+        <action time="50" pages="1 2">"io"</action>
+        <action time="35" pages="3">"calculate"</action>
+        <action time="10" pages="1 4 5">"output"</action>
+        <action time="0">"yield"</action>
+    </app>
+    <app>
+        <action time="15" pages=" 2 3">"io"</action>
+        <action time="30" pages=" 2 5">"io"</action>
+        <action time="10" pages=" 1 6 7 ">"output"</action>
+        <action time="0">"yield"</action>
+    </app>
+  <!--   
+    <app>
+        <action time="40" pages="1">"calculate"</action>
+        <action time="30" pages="1">"calculate"</action>
+        <action time="10" pages="1">"output"</action>
+        <action time="0">"yield"</action>
+    </app>
+    <app>
+        <action time="40" pages="2">"io"</action>
+        <action time="33" pages="2">"calculate"</action>
+        <action time="10" pages="2">"output"</action>
+        <action time="0">"yield"</action>
+    </app>
+    <app>
+        <action time="10" pages="3">"calculate"</action>
+        <action time="30" pages="1">"calculate"</action>
+        <action time="0">"yield"</action>
+    </app>
+
 -->
- 
-    <app>
-        <action time="50">"io"</action>
-        <action time="35">"calculate"</action>
-        <action time="0">"yield"</action>
-    </app>
-    <app>
-        <action time="15">"io2"</action>
-        <action time="30">"io3"</action>
-        <action time="0">"yield"</action>
-    </app>
-    <app>
-        <action time="40">"calculate"</action>
-        <action time="30">"calculate"</action>
-        <action time="0">"yield"</action>
-    </app>
-    <app>
-        <action time="40">"io"</action>
-        <action time="33">"calculate"</action>
-        <action time="0">"yield"</action>
-    </app>
-    <app>
-        <action time="10">"calculate"</action>
-        <action time="30">"calculate"</action>
-        <action time="0">"yield"</action>
-    </app>
-
-
 
 </Processes>

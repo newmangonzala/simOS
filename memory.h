@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <deque>
+#include <queue>
 #include <list>
 #include <unordered_map>
 
@@ -42,6 +42,38 @@ class mem{
     
     unordered_map<int, deque<string>*> mailboxes;
 
+    short int** mainMem = new short int*[256];   //128 pages of 16kb
+
+    queue<short int> freeFrames;
+
+    short int currentFrameIndex;
+
+    void mmu();
+
+};
+
+
+
+class pageTable{
+
+    public: 
+
+    vector<int*> entries;
+    //int** entries = new int*[256];
+    
+    pageTable(int priority){
+        for(int i = 0 ; i < priority*3; i++){
+            int * tmp = new int[2];
+            tmp[0] = 0; //initialize valid bits to 0
+            entries.push_back(tmp);
+        }
+
+    }
+    
+
+    
+      
+    
 };
 
 #endif
