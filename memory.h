@@ -1,6 +1,6 @@
+
 #ifndef MEMORY_H
 #define MEMORY_H
-
 
 #include <iostream>
 #include <string>
@@ -35,12 +35,9 @@ class mem{
     vector<List<mem::instrucion>> qOfPr;
     vector<List<std::string>> memOfProcesses;
 
-    struct createMailbox{
-        deque<string> messages;
-        int id;
-    };
     
-    unordered_map<int, deque<string>*> mailboxes;
+    
+    
 
     short int** mainMem = new short int*[256];   //128 pages of 16kb
 
@@ -49,6 +46,8 @@ class mem{
     short int currentFrameIndex;
 
     void mmu();
+
+    //tuple<int, PrBkCtr*> processTable;
 
 };
 

@@ -7,6 +7,8 @@
 #include <fstream>
 #include <thread> 
 
+#define numFrames 10 //256
+
 #include "rapidxml.hpp"
 
 #include "timer.h"
@@ -19,6 +21,8 @@
 
 #include "pcb.h"
 #include "pcb.cpp"
+
+#include "ipc.h"
 
 #include "scheduler.h"
 #include "scheduler.cpp"
@@ -34,7 +38,7 @@ using namespace std;
 using namespace rapidxml;
 
 int PrBkCtr::id = 0;
-#define numFrames 10 //256
+
 
 int main(){
 
@@ -48,9 +52,10 @@ int main(){
  
 
     List<PrBkCtr*> queue1;
+    ipc tmpIPC;
 
 
-    Sched S1(queue1, M1);
+    Sched S1(queue1, M1, tmpIPC);
 
 /*
     for(int i = 0; i < M1.memOfProcesses.size(); i++){
@@ -63,11 +68,12 @@ int main(){
 
     }*/
 
+    
 
     for(int i = 0; i < M1.memOfProcesses.size(); i++){
 
         PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[i].getHead());
-        M1.mailboxes.insert({pcb->mailbox->id,&pcb->mailbox->messages});
+        tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
                            
         pcb->state = READY;              //change PCB state to READY
         
@@ -88,6 +94,8 @@ int main(){
     PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[0].getHead());
     pcb->pgTbl->entries[0][0] = 5;;
     cout << pcb->pgTbl->entries[0][0] << endl;
+
+    
 
     //cout << M1.currentFrame[0] << endl;
 

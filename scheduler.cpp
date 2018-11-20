@@ -1,9 +1,10 @@
 #include "scheduler.h"
 #include <thread> 
 
-Sched::Sched(List<PrBkCtr*>& Q1, mem& A){ 
+Sched::Sched(List<PrBkCtr*>& Q1, mem& A, ipc& MailB){ 
     queue1 = &Q1;
     M1 = &A;
+    MB = &MailB;
 }
 //Sched::Sched(){}
 
@@ -105,6 +106,7 @@ void Sched::running2(){
                 fork(w);
 
             }
+            /*
             else if(c.compare("send") == 0){
                 //cout << M1->numProcess << endl;
                 string tmpmail = inst->first_attribute("mailbox")->value();
@@ -131,7 +133,7 @@ void Sched::running2(){
                 cout << search->second->back() << endl;
             //    M1->mailbox->messages.pop_back();
             }
-    
+            */
             
             w->PCtmp = r->next;     //update PC
 
@@ -198,7 +200,7 @@ void Sched::fork(PrBkCtr* w){
                 w->parent = true;
                 w->childs.push_back(&pcb);
                 queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
-                M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+                //M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
 
     return;
 }
@@ -272,6 +274,8 @@ void Sched::mmu(PrBkCtr* w, vector<int> pages){
             continue; //FIX ME
         }
 
+        cout << "Process id " << w->PID << " page: " << pages[i] << " bit: " << w->pgTbl->entries[pages[i]][0] << endl;
+
         if(!w->pgTbl->entries[pages[i]][0]){   //valid bit is 0; meaning is not in memory
             //page is not in memory
 
@@ -301,7 +305,7 @@ void Sched::mmu(PrBkCtr* w, vector<int> pages){
 
             }
             w->pgTbl->entries[pages[i]][0] = 1;                 //change valid bit to 1, meaning is now in Mmem
-            M1->currentFrameIndex++;                            //Increase index of mem
+            M1->currentFrameIndex = M1->currentFrameIndex++ % numFrames;        //Increase index of mem
         }
         else{   //valid bit is 1 so page is in memory
             

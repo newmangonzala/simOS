@@ -26,7 +26,7 @@ class PrBkCtr{
         unsigned int PID;                           //Unique process number ID
         unsigned int ParentPID;                     
         string baseAddress;
-        List<mem::instrucion>::node* PC;            //Program Counter
+        //List<mem::instrucion>::node* PC;            //Program Counter
         List<std::string>::node* PCtmp;
         unsigned int Privalage;                     //Privalage
 
@@ -41,8 +41,13 @@ class PrBkCtr{
         bool parent;
         vector<PrBkCtr*> childs;
 
-        mem::createMailbox *mailbox;
+        struct createMailbox{
+            deque<string> messages;
+            int id;
+        };
+        createMailbox mailbox;
 
+        //memory limits
         pageTable* pgTbl;
         
         //struct accounting{

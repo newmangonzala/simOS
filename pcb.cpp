@@ -31,8 +31,8 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     ParentPID = 0; 
     state = NEW;    //State of the process
 
-    mailbox = new mem::createMailbox;
-    mailbox->id = id;
+    //mailbox = new createMailbox;
+    mailbox.id = id;
 
     pgTbl =  new pageTable(1);
 }
