@@ -2,6 +2,7 @@
 #define PCB_H
 
 #include <string>
+#include <queue>
 
 //PCB states
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
@@ -42,7 +43,7 @@ class PrBkCtr{
         vector<PrBkCtr*> childs;
 
         struct createMailbox{
-            deque<string> messages;
+            List<string> messages;
             int id;
         };
         createMailbox mailbox;

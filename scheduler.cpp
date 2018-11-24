@@ -60,6 +60,8 @@ void Sched::running2(){
         basic_string<char> toParse = r->data;
         basic_string<char>* b = &r->data;
 
+        //print instruction
+        //cout << r->data << endl;
 
         xml_document<> doc;
         doc.parse<0>(&(toParse)[0]);
@@ -73,68 +75,60 @@ void Sched::running2(){
         
 
         auto f = inst->first_attribute("pages");
-        string s = f->value();
-        vector<int> pages = findPages(s);
+        if(f != 0){
+            string s = f->value();
+            vector<int> pages = findPages(s);
+            mmu(w, pages);
+        }
 
-        
-        mmu(w, pages);
 
         //inst->remove_first_attribute();
         if((duration - qtime) <= 0){
             //wait for qtime - duration
             std::this_thread::sleep_for(std::chrono::microseconds(duration));
-            b->replace(14,2,"00");
-            
-            cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
-            
-            //check if instruction was the last from process
 
-            toParse = r->next->data;
+            
+            r->data = updateTime(r->data, 0);
+            
+
+            toParse = r->data;
             doc.parse<0>(&(toParse)[0]);
             inst = doc.first_node();
             string c = inst->value();
+
             //cout << c << endl;
             if(c.compare("\"yield\"") == 0){
-
                 yield(w);
                 continue;
             }
-          
-            c = inst->name();
-            if(c.compare("fork") == 0){
-
+            else if(c.compare("fork") == 0){
                 fork(w);
-
             }
-            /*
             else if(c.compare("send") == 0){
-                //cout << M1->numProcess << endl;
+                //cout << MB->numProcess << endl;
                 string tmpmail = inst->first_attribute("mailbox")->value();
                 cout << "child of current pr is " << w->childs[0]->PID << endl;
                 if(tmpmail.compare("child") == 0){
-                    auto search = M1->mailboxes.find(w->childs[0]->PID);
-                    search->second->push_front(inst->first_attribute("message")->value());
+
+                    string messg = inst->first_attribute("message")->value();
                     
-                    
-                    //auto search = M1.mailboxes.find(pcb.mailbox->id);
-                    //cout << search->second->back() << endl;
-                    //cout << search->second << endl;
+                    auto search = MB->mailboxes.find(w->childs[0]->PID);
+          
+                    search->second->insertNode(messg);
+                    //cout << "size: " << search->second->size() << endl;
+ 
                 }
-                
-                //string me = inst->first_attribute("message")->value();
-                //M1->mailbox->messages.push_back(me);
-                //M1->mailbox->messages.pop_front();
-                //if (M1->mailbox->messages.back().compare("end") == 0){
-                //    cout << "SI" << endl;
-               // }
+            
             }
             else if(c.compare("receive") == 0){
-                auto search = M1->mailboxes.find(w->id);
-                cout << search->second->back() << endl;
-            //    M1->mailbox->messages.pop_back();
+                 auto search = MB->mailboxes.find(w->PID);
+                 
+                for(int i=0; i < search->second->size(); i++)
+                    cout << "message received: " << search->second->getHead()->data << endl;
+                    search->second->deleteHead();                
             }
-            */
             
+            cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
             w->PCtmp = r->next;     //update PC
 
         }
@@ -143,8 +137,12 @@ void Sched::running2(){
             std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
             int timep = duration - qtime;
             string tn = to_string(timep);
-            b->replace(14,2,tn);            
+            //b->replace(14,2,tn);
+            r->data = updateTime(r->data, timep);
+            
         }
+
+        cout << endl;
         //move current process to the back of the queue
         updateQ();
         
@@ -155,10 +153,24 @@ void Sched::running2(){
     return;
 }
 
+string Sched::updateTime(string instruction, int newTime){
+    
+    int i=0;
+    string nt = to_string(newTime);
+    for(char C : instruction){
+        if(C == '\"'){
+            instruction.replace(++i,2,nt);
+            break;
+        }
+        i++;
+    }
+
+    return instruction;
+}
 
 void Sched::fork(PrBkCtr* w){
 
-                cout << "forking " << w->PID << endl;
+                //cout << "forking " << w->PID << endl;
                 xml_document<> doc;
                 xml_node<> * root_node;
                 ifstream file("process.xml");
@@ -194,13 +206,16 @@ void Sched::fork(PrBkCtr* w){
                     tmpPr.remove_first_node();
                 }
 
-                PrBkCtr pcb(instructions.getHead());
-                pcb.state = READY;              //change PCB state to READY
-                pcb.parent = w->PID;
+                //PrBkCtr pcb(instructions.getHead());
+                PrBkCtr* pcb = new PrBkCtr(instructions.getHead());
+                pcb->state = READY;              //change PCB state to READY
+                pcb->parent = w->PID;
                 w->parent = true;
-                w->childs.push_back(&pcb);
-                queue1->insertNode(&pcb);     //insert pcbs into READY QUEUE
-                //M1->mailboxes.insert({pcb.mailbox->id,&pcb.mailbox->messages});
+                w->childs.push_back(pcb);
+                queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+                
+                //tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
+                MB->mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
 
     return;
 }
@@ -210,23 +225,31 @@ void Sched::yield(PrBkCtr* w){
     if(w->childs.size() > 0){
         auto childProcess = w->childs[0];           //get childs
         List<PrBkCtr*>::node* prev = queue1->getHead();         //get current process
-        List<PrBkCtr*>::node* tmpPr = prev->next;
-        PrBkCtr* tmp = tmpPr->data;
+        int size = queue1->size();
+        if(size > 1){
+               
+            List<PrBkCtr*>::node* tmpPr = prev->next;
+            PrBkCtr* tmp = tmpPr->data;
 
-        while(tmp != childProcess){                 //iterate through each process to find child
-            prev = tmpPr;
-            tmpPr = tmpPr->next;
-            tmp = tmpPr->data;
-            
+            while(tmp != childProcess && tmpPr->next != NULL){ //iterate through each process to find child
+                prev = tmpPr;
+                tmpPr = tmpPr->next;
+                tmp = tmpPr->data;
+            }
+            if(tmp == childProcess){
+                tmp->state = TERMINANTED;               //updating state of child to terminated
+                cout << "child of parent " << w->PID << " with id of " << tmp->PID << " has been terminated" << endl; 
+            }
+            if(tmpPr != NULL){
+                prev->next = tmpPr->next;
+                delete tmpPr;
+            }
         }
         
-        tmp->state = TERMINANTED;               //updating state of child to terminated
-        cout << "child of parent " << w->PID << " with id of " << tmp->PID << " has been terminated" << endl; 
-        prev->next = tmpPr->next;
-
-        delete tmpPr;
-
-
+        
+                
+            
+        
     }
 
     w->state = TERMINANTED;                         //updating state to terminated

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <fstream>
 #include <thread> 
+#include <queue>
 
 #define numFrames 10 //256
 
@@ -74,15 +75,46 @@ int main(){
 
         PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[i].getHead());
         tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
-                           
+        //auto search = tmpIPC.mailboxes.find(pcb->mailbox.id);
+        //search->second->push_front("test");
+        //cout <<  search->second->front() << endl;
+
+
         pcb->state = READY;              //change PCB state to READY
         
         S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
 
     }
 
+    /*
+    for(int i=0; i < 2 ;i++){
+        List<PrBkCtr*>::node* head = S1.queue1->getHead();
+        PrBkCtr* w = head->data;
+        List<string>::node* r = w->PCtmp;
+        while(r != NULL){
+            cout << r->data;
+            r = r->next;
+        }
+    }
+    */
     S1.running2();
+    
+    /*
+    string instruction = "<receive    time=\"10\"   pages=\"3\">      \"receive from parent\"</action>";
+        cout << instruction << endl;
+        int i=0;
+    for(char C : instruction){
+        if(C == '\"'){
+            instruction.replace(++i,2,"00");
+            break;
+        }
+        i++;
+    }
+    cout << instruction << endl;
+    */
 
+    cout << "-!" << endl;
+    /*
     pageTable p(3);
     p.entries[0][0] = 4;
 
@@ -94,7 +126,7 @@ int main(){
     PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[0].getHead());
     pcb->pgTbl->entries[0][0] = 5;;
     cout << pcb->pgTbl->entries[0][0] << endl;
-
+    */
     
 
     //cout << M1.currentFrame[0] << endl;

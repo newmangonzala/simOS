@@ -34,5 +34,5 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     //mailbox = new createMailbox;
     mailbox.id = id;
 
-    pgTbl =  new pageTable(1);
+    pgTbl =  new pageTable(3);
 }

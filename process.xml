@@ -2,23 +2,21 @@
 <Processes>
 
 
-<!-- 
 
     <app>
-        <action time="40" pages="868">"io"</action>
-        <action time="70" pages="1710">"calculate"</action>
-        <fork time="10">"fork"</fork>
-        <send time= "10" mailbox="child" message="hello">"send to parent"</action>
+        <action time="10"   pages="8 6 8">"io"</action>
+        <action time="10" pages="1 3 2">fork</fork>
+        <action time="10" mailbox="child" message="hello">send</action>
+        <action time="70"   pages="1 7 3">"calculate"</action>
         <action time="00">"yield"</action>
     </app>
-    <child address="6255">"test"
-        <action time="10">"calculatef"</action>
-        <action time="30">"calculatef"</action>
-        <receive time= "10">"receive from parent"</action>
-        <action time="0">"yield"</action>
+    <child>"test"
+        <action     time="10"   pages="5 6 8">"calculatef"</action>
+        <action    time="10"   pages="3">receive</action>
+        <action time="00">"yield"</action>
     </child>
-
---> 
+ 
+ <!--
     <app>
         <action time="50" pages="1 2">"io"</action>
         <action time="35" pages="3">"calculate"</action>
@@ -31,7 +29,7 @@
         <action time="10" pages=" 1 6 7 ">"output"</action>
         <action time="0">"yield"</action>
     </app>
-  <!--   
+    
     <app>
         <action time="40" pages="1">"calculate"</action>
         <action time="30" pages="1">"calculate"</action>

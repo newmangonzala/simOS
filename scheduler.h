@@ -49,6 +49,7 @@ class Sched{
     void fork(PrBkCtr*);
     void yield(PrBkCtr*);
     vector<int> findPages(string);
+    string updateTime(string, int);
     
     void mmu(PrBkCtr*, vector<int>);
 };

@@ -3,7 +3,7 @@
 
 class ipc{
     public:
-        unordered_map<int, deque<string>*> mailboxes;
+        unordered_map<int, List<string>*> mailboxes;
         int id;
         ipc(){
 
