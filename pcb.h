@@ -33,7 +33,7 @@ class PrBkCtr{
 
         // priorities, scheduling queue pointers
         unsigned int priority;
-        unsigned int queue;
+        //unsigned int queue;
         
         // memory allocated
         //unsigned int address;  //might not need this
@@ -41,6 +41,7 @@ class PrBkCtr{
         unsigned int IOinfo;
         bool parent;
         vector<PrBkCtr*> childs;
+        int queue;
 
         struct createMailbox{
             List<string> messages;

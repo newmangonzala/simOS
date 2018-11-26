@@ -9,6 +9,7 @@ using namespace std;
 template <class type>
 class List;
 
+
 //template <typename type>
 //ostream& operator<< (ostream& os, List<type>& print); ///this is needed so operator overload works
 
@@ -29,7 +30,6 @@ class List{
 		List();
 		~List();
 		void insertNode(type);  //insert Node before the the tail
-		void deleteNode();      //deletes node from the list
 		void deleteHead();      //deletes head from the list
 		auto getHead();			//returns head
 		auto getTail();
@@ -95,19 +95,6 @@ void List<type>::insertNode(type dat){
 	return;
 }
 
-//FIX ME
-template <class type>
-void List<type>::deleteNode(){
-	
-	
-	if(head!=NULL){
-		
-		node *ptr; 
-
-
-	}
-}
-
 template <class type>
 void List<type>::deleteHead(){
 	
@@ -133,6 +120,98 @@ int List<type>::size(){
 	//cout << "current list has a size of " << size << endl;
 	return size;
 }
+
+template <class type>
+class DoublyList: public List<type> {
+	public:
+
+		DoublyList(){
+			head = NULL;
+			tail = NULL;
+		}
+	
+		struct node{
+			type data;
+			node *next;
+			node *prev;
+		};
+		node *head; 	//head node = current node running
+		node *tail; 	//tail->next always point to null
+        
+		void insertNode(type);  //insert Node before the the tail
+		void deleteNode(node*);  //insert Node before the the tail
+		void deleteHead();      //deletes head from the list
+		node* getHead(){
+			return head;
+		}
+		node* getTail(){
+			return tail;
+		}
+		bool isEmpty(){
+			if(head == NULL){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+};
+
+//insert node in doubly linked list
+template <class type>
+void DoublyList<type>::insertNode(type dat){
+	node *nNode;
+	nNode = new node;
+	nNode->data = dat;
+	nNode->next = NULL;
+	nNode->prev = NULL;
+
+	if(tail == NULL){
+		head = nNode;
+		tail = nNode;
+	}
+	else if (tail == head){
+		tail = nNode;
+		tail->prev = head;
+		head->next = nNode;
+	}
+	else{
+        tail->next = nNode;
+		nNode->prev = tail;
+		tail = nNode;
+	}
+	return;
+}
+template <class type>
+void DoublyList<type>::deleteHead(){
+		
+	if(head!=NULL){
+		
+		node *ptr; 
+		ptr = head; 
+
+		head = head->next;
+		if(head != NULL)
+			head->prev = NULL;
+		delete ptr;
+	}
+}
+
+template <class type>
+void DoublyList<type>::deleteNode(node* tmpNode){
+		
+	if(tmpNode->next == NULL){
+		tmpNode->prev->next = NULL;
+		delete tmpNode;
+	}
+	else if(tmpNode->prev == NULL){
+		deleteHead();
+	}
+	else{
+		tmpNode->prev->next = tmpNode->next;	
+		delete tmpNode;
+	}
+}	
 
 /*
 template <typename type>

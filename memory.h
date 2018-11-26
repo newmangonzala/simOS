@@ -35,10 +35,9 @@ class mem{
     vector<List<mem::instrucion>> qOfPr;
     vector<List<std::string>> memOfProcesses;
 
-    
-    
-    
 
+
+    
     short int** mainMem = new short int*[256];   //128 pages of 16kb
 
     queue<short int> freeFrames;

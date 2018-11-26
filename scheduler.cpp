@@ -1,155 +1,145 @@
 #include "scheduler.h"
 #include <thread> 
 
-Sched::Sched(List<PrBkCtr*>& Q1, mem& A, ipc& MailB){ 
+Sched::Sched(DoublyList<PrBkCtr*>& Q1, DoublyList<PrBkCtr*>& Q3, mem& A, ipc& MailB){ 
     queue1 = &Q1;
+    queue3 = &Q3;
     M1 = &A;
     MB = &MailB;
-}
-//Sched::Sched(){}
-
-int Sched::manage(){
-    return 1;
 }
 
 //move current process to the back of the queue
 void Sched::updateQ(){
 
-    List<PrBkCtr*>::node* head = queue1->getHead();
-    List<PrBkCtr*>::node* tail = queue1->getTail();
-    List<PrBkCtr*>::node* prev = head->next;
+    DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+    DoublyList<PrBkCtr*>::node* tail = queue1->getTail();
+    DoublyList<PrBkCtr*>::node* prev = head->next;
     
-
     if(head != tail){
         tail->next = head;
-        
     }
     else{
         return;
     }
     
-    
     queue1->head = prev;
     queue1->tail = head;
     queue1->tail->next = NULL;
-  
- /*
-    PrBkCtr* w = &queue1->head->data;
-    List<mem::instrucion>::node* r = w->PC;
-    mem::instrucion* b = &r->data;
-    cout << b->type << endl;
-  */  
-    
+     
+    return;
+}
+void Sched::updateQ2(){
+
+    DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+    queue3->insertNode(head->data);
+
     return;
 }
 
 
-        //std::chrono::duration<double,std::milli> dif;
-        //auto start = std::chrono::system_clock::now(); 
-        //auto end = std::chrono::system_clock::now(); 
-        //dif = end - start;
-
-
 void Sched::running2(){
 //run until Ready queue is empty
-    while(!queue1->isEmpty()){
 
-        List<PrBkCtr*>::node* head = queue1->getHead();
-        PrBkCtr* w = head->data;
-        List<string>::node* r = w->PCtmp;
-        basic_string<char> toParse = r->data;
-        basic_string<char>* b = &r->data;
-
-        //print instruction
-        //cout << r->data << endl;
-
-        xml_document<> doc;
-        doc.parse<0>(&(toParse)[0]);
-        xml_node<> * inst = doc.first_node();
-        rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
-
-        
-        int duration = stoi(t->value());
-        w->state = RUNNING;     //updating state to running
-        cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
-        
-
-        auto f = inst->first_attribute("pages");
-        if(f != 0){
-            string s = f->value();
-            vector<int> pages = findPages(s);
-            mmu(w, pages);
-        }
-
-
-        //inst->remove_first_attribute();
-        if((duration - qtime) <= 0){
-            //wait for qtime - duration
-            std::this_thread::sleep_for(std::chrono::microseconds(duration));
-
-            
-            r->data = updateTime(r->data, 0);
-            
-
-            toParse = r->data;
-            doc.parse<0>(&(toParse)[0]);
-            inst = doc.first_node();
-            string c = inst->value();
-
-            //cout << c << endl;
-            if(c.compare("\"yield\"") == 0){
-                yield(w);
-                continue;
-            }
-            else if(c.compare("fork") == 0){
-                fork(w);
-            }
-            else if(c.compare("send") == 0){
-                //cout << MB->numProcess << endl;
-                string tmpmail = inst->first_attribute("mailbox")->value();
-                cout << "child of current pr is " << w->childs[0]->PID << endl;
-                if(tmpmail.compare("child") == 0){
-
-                    string messg = inst->first_attribute("message")->value();
-                    
-                    auto search = MB->mailboxes.find(w->childs[0]->PID);
-          
-                    search->second->insertNode(messg);
-                    //cout << "size: " << search->second->size() << endl;
  
-                }
-            
-            }
-            else if(c.compare("receive") == 0){
-                 auto search = MB->mailboxes.find(w->PID);
-                 
-                for(int i=0; i < search->second->size(); i++)
-                    cout << "message received: " << search->second->getHead()->data << endl;
-                    search->second->deleteHead();                
-            }
-            
-            cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
-            w->PCtmp = r->next;     //update PC
-
-        }
-        else{
-            //wait for qtime
-            std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
-            int timep = duration - qtime;
-            string tn = to_string(timep);
-            //b->replace(14,2,tn);
-            r->data = updateTime(r->data, timep);
-            
-        }
-
-        cout << endl;
-        //move current process to the back of the queue
-        updateQ();
+    while(!queue1->isEmpty() || !queue3->isEmpty()){
         
+        if(!queue1->isEmpty()){
+            servingQ = Queue1;
 
-    }
+            DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+            PrBkCtr* w = head->data;
+            List<string>::node* r = w->PCtmp;
+            basic_string<char> toParse = r->data;
+            basic_string<char>* b = &r->data;
+
+            //print instruction
+            //cout << r->data << endl;
+
+            xml_document<> doc;
+            doc.parse<0>(&(toParse)[0]);
+            xml_node<> * inst = doc.first_node();
+            rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+
+            int duration = stoi(t->value());
+            w->state = RUNNING;     //updating state to running
+            cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+            
+
+            auto f = inst->first_attribute("pages");
+            if(f != 0){
+                string s = f->value();
+                vector<int> pages = findPages(s);
+                mmu(w, pages);
+            }
+
+            //inst->remove_first_attribute();
+            if((duration - qtime) <= 0){
+                //wait for qtime - duration
+                std::this_thread::sleep_for(std::chrono::microseconds(duration));
+                
+                r->data = updateTime(r->data, 0);
+                
+                toParse = r->data;
+                doc.parse<0>(&(toParse)[0]);
+                inst = doc.first_node();
+                string c = inst->value();
+
+                if(c.compare("\"yield\"") == 0){
+                    yield(w);
+                    continue;
+                }
+                else if(c.compare("fork") == 0){
+                    fork(w);
+                }
+                else if(c.compare("send") == 0){
+                    //cout << MB->numProcess << endl;
+                    string tmpmail = inst->first_attribute("mailbox")->value();
+                    cout << "child of current pr is " << w->childs[0]->PID << endl;
+                    if(tmpmail.compare("child") == 0){
+
+                        string messg = inst->first_attribute("message")->value();
+                        
+                        auto search = MB->mailboxes.find(w->childs[0]->PID);
+            
+                        search->second->insertNode(messg);
     
+                    }
+                
+                }
+                else if(c.compare("receive") == 0){
+                    auto search = MB->mailboxes.find(w->PID);
+                    
+                    for(int i=0; i < search->second->size(); i++)
+                        cout << "message received: " << search->second->getHead()->data << endl;
+                        search->second->deleteHead();                
+                }
+                
+                cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
+                w->PCtmp = r->next;     //update PC
 
+            }
+            else{
+                //wait for qtime
+                std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
+                int timep = duration - qtime;
+                //string tn = to_string(timep);
+                r->data = updateTime(r->data, timep);
+                
+            }
+
+            cout << endl;
+            //move current process to the back of the queue
+            updateQ();
+            
+
+        }
+        else if(!queue3->isEmpty()){
+            servingQ = Queue3;
+            cout << "FIX ME" << endl;
+
+        }
+        
+    }
     return;
 }
 
@@ -222,12 +212,48 @@ void Sched::fork(PrBkCtr* w){
 
 void Sched::yield(PrBkCtr* w){
 
+    if(checkChilds(w)){
+            while(checkChilds(w)){
+                auto childProcess = w->childs.back();           //get childs
+                switch(childProcess->state) {
+                    case READY:
+                        {
+                        auto node = MB->PrTable.find(childProcess->PID);
+                        terminatePr(node->second);
+                        }
+                        break;
+                    case TERMINANTED:
+                        break;
+                    default:
+                        cout << "ERROR with child states" << endl;
+                        break;
+                }
+                w->childs.pop_back();
+            }
+    }
+            
+    w->state = TERMINANTED;                         //updating state to terminated
+    if(servingQ == Queue1){
+            queue1->deleteHead();
+            cout << "process " << w->PID << " has been terminated from queue 1" << endl;
+    }
+    else if(servingQ == Queue2){
+            queue2->deleteHead();
+            cout << "process " << w->PID << " has been terminated from queue 2" << endl;
+    }
+    else{
+        queue3->deleteHead();
+        cout << "process " << w->PID << " has been terminated from queue 3" << endl;
+    }
+    
+/*
     if(w->childs.size() > 0){
         auto childProcess = w->childs[0];           //get childs
         List<PrBkCtr*>::node* prev = queue1->getHead();         //get current process
+ 
         int size = queue1->size();
         if(size > 1){
-               
+            
             List<PrBkCtr*>::node* tmpPr = prev->next;
             PrBkCtr* tmp = tmpPr->data;
 
@@ -245,11 +271,7 @@ void Sched::yield(PrBkCtr* w){
                 delete tmpPr;
             }
         }
-        
-        
-                
-            
-        
+    
     }
 
     w->state = TERMINANTED;                         //updating state to terminated
@@ -257,10 +279,7 @@ void Sched::yield(PrBkCtr* w){
     queue1->deleteHead();
 
     cout << "process " << w->PID << " has been terminated" << endl;
-
-
-    
-
+*/
     return;
 }
 
@@ -342,4 +361,27 @@ void Sched::mmu(PrBkCtr* w, vector<int> pages){
     }
 
     return;
+}
+
+bool Sched::checkChilds(PrBkCtr* w){
+    if(w->childs.size() > 0){
+        return true;
+    }
+    else
+        return false;
+}
+
+void Sched::terminatePr(DoublyList<PrBkCtr*>::node* prTerm){
+    
+    PrBkCtr* ptrData = prTerm->data;
+  
+    if(ptrData->queue == 1)
+        queue1->deleteNode(prTerm);
+    else if(ptrData->queue == 2)
+        queue2->deleteNode(prTerm);
+    else if(ptrData->queue == 3)
+        queue3->deleteNode(prTerm);
+    else
+        cout << "ERROR prTerm" << endl;
+
 }

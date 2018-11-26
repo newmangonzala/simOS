@@ -17,6 +17,8 @@
 #include "pcb.h"
 
 
+enum QState{Queue1 , Queue2 , Queue3};
+
 //Process scheduler
 //multilevel Feedback Queue
 class Sched{
@@ -25,29 +27,32 @@ class Sched{
     public:
     
     //Sched(List<PrBkCtr*>& ,mem&);
-    Sched(List<PrBkCtr*>& ,mem&, ipc&);
+    Sched(DoublyList<PrBkCtr*>& ,DoublyList<PrBkCtr*>& ,mem&, ipc&);
     //Sched();
 
     int qtime = 20; //20 milliseconds
+    QState servingQ;
 
-    List<PrBkCtr*>* queue1;   //round robin //this is the ready queue
-    //List<int> queue2;   //round robin
-    //List<int> queue3;   //first come first serve
+    DoublyList<PrBkCtr*>* queue1;   //round robin //this is the ready queue
+    DoublyList<PrBkCtr*>* queue2;   //round robin
+    DoublyList<PrBkCtr*>* queue3;   //first come first serve
 
     mem* M1;
     ipc* MB; //mailboxes
 
     //move pcb running to back of the queue 
     void updateQ();
+    void updateQ2();
 
-    //FIX or DELETE
-    int manage();
+
+    void terminatePr(DoublyList<PrBkCtr*>::node*);
 
     //runs the processes in READY
     void running();
     void running2();
     void fork(PrBkCtr*);
     void yield(PrBkCtr*);
+    bool checkChilds(PrBkCtr*);
     vector<int> findPages(string);
     string updateTime(string, int);
     
