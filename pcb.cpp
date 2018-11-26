@@ -37,4 +37,9 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     queue = 1;
 
     pgTbl =  new pageTable(3);
+
+    rw_mutex = new semaphore;
+    rw_mutex->value = 1;
+    mutex = new semaphore;
+    mutex->value = 1;
 }

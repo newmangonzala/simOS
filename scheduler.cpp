@@ -44,18 +44,20 @@ void Sched::running2(){
         
         if(!queue1->isEmpty()){
             servingQ = Queue1;
-            cout << "Q1 "<< endl;
+            //cout << "Q1 "<< endl;
 
             runRR(queue1);
 
             cout << endl;
  
-            DoublyList<PrBkCtr*>::node* head = queue1->getHead();
-            queue1->popHead();
-            queue2->insertNode(head->data);
+            updateQ(queue1);
+            //DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+            //queue1->popHead();
+            //queue2->insertNode(head->data);
             
 
         }
+        /*
         else if(!queue2->isEmpty()){
             servingQ = Queue2;
             cout << "Q2 "<< endl;
@@ -77,7 +79,7 @@ void Sched::running2(){
             cout << endl;
             updateQ(queue3);
         }
-        
+        */
     }
     return;
 }
@@ -148,6 +150,12 @@ void Sched::runRR(DoublyList<PrBkCtr *>* queue){
             for(int i=0; i < search->second->size(); i++)
                 cout << "message received: " << search->second->getHead()->data << endl;
                 search->second->deleteHead();                
+        }
+        else if(c.compare("write") == 0){
+            write(w);
+        }
+        else if(c.compare("read") == 0){
+            read(w);
         }
         
         cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
@@ -455,6 +463,62 @@ void Sched::mmu(PrBkCtr* w, vector<int> pages){
 
     return;
 }
+
+void Sched::write(PrBkCtr* pr){
+
+    //writer
+    wait(pr->rw_mutex, pr);
+
+    //writing
+
+    signal(pr->rw_mutex, pr);
+}
+
+void Sched::read(PrBkCtr* pr){
+    
+    //reader
+    wait(pr->mutex, pr);
+    pr->read_count++;
+    if(pr->read_count == 1)
+        wait(pr->rw_mutex, pr);
+    signal(pr->mutex, pr);
+
+    //reading
+
+    wait(pr->mutex, pr);
+    pr->read_count--;
+    if(pr->read_count == 0)
+        signal(pr->rw_mutex, pr);
+    signal(pr->mutex, pr);
+}
+
+void Sched::wait(semaphore *S, PrBkCtr* process){
+    S->value--;
+    if(S->value < 0){
+        S->processes.insertNode(process);
+        if(servingQ == Queue1)
+            queue1->deleteHead();
+        
+        else if (servingQ == Queue2)
+            queue2->deleteHead();
+        else
+            queue3->deleteHead();
+
+        //block
+        process->state = WAITING;
+    }
+}
+
+void Sched::signal(semaphore *S, PrBkCtr* process){
+    S->value++;
+    if(S->value <= 0){
+        //wakeup
+        S->processes.getHead()->data->state = READY;
+        S->processes.deleteHead();
+        queue1->insertNode(process);
+    }
+}
+
 
 bool Sched::checkChilds(PrBkCtr* w){
     if(w->childs.size() > 0){

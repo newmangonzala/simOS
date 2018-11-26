@@ -60,19 +60,6 @@ int main(){
 
     Sched S1(queue1, queue2, queue3 ,M1, tmpIPC);
 
-/*
-    for(int i = 0; i < M1.memOfProcesses.size(); i++){
-        auto f = M1.memOfProcesses[i].getHead();
-        while(f != NULL){
-            cout << f->data << endl;
-            f = f->next;
-        }
-        cout << "------" << endl;
-
-    }*/
-
-    
-
     for(int i = 0; i < M1.memOfProcesses.size(); i++){
 
         PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[i].getHead());
@@ -108,3 +95,7 @@ int main(){
     
     system("pause");
 }
+
+
+
+

@@ -7,6 +7,13 @@
 //PCB states
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
 
+class PrBkCtr;
+
+typedef struct{
+    int value;
+    DoublyList<PrBkCtr*> processes;
+}semaphore;
+
 class PrBkCtr{
     public:
 
@@ -36,7 +43,13 @@ class PrBkCtr{
         //unsigned int queue;
         
         // memory allocated
-        //unsigned int address;  //might not need this
+        
+    
+        int sharedMem;
+        semaphore* rw_mutex;
+        semaphore* mutex;
+        int read_count = 0;
+        
            
         unsigned int IOinfo;
         bool parent;
@@ -59,5 +72,7 @@ class PrBkCtr{
         //}accounting;
 
 };
+
+
 
 #endif

@@ -53,6 +53,12 @@ class Sched{
     void runFIFO(DoublyList<PrBkCtr *>*);
     void running2();
     void fork(PrBkCtr*);
+
+    void write(PrBkCtr*);
+    void read(PrBkCtr*);
+    void wait(semaphore*, PrBkCtr*);
+    void signal(semaphore*, PrBkCtr*);
+
     void yield(PrBkCtr*);
     bool checkChilds(PrBkCtr*);
     vector<int> findPages(string);
