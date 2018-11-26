@@ -141,6 +141,7 @@ class DoublyList: public List<type> {
 		void insertNode(type);  //insert Node before the the tail
 		void deleteNode(node*);  //insert Node before the the tail
 		void deleteHead();      //deletes head from the list
+		void popHead();
 		node* getHead(){
 			return head;
 		}
@@ -185,7 +186,14 @@ void DoublyList<type>::insertNode(type dat){
 template <class type>
 void DoublyList<type>::deleteHead(){
 		
-	if(head!=NULL){
+	node *ptr;
+	if(head == tail){
+		ptr = head;
+		head = NULL;
+		tail = NULL;
+		delete ptr;
+	}	
+	else if(head!=NULL){
 		
 		node *ptr; 
 		ptr = head; 
@@ -194,6 +202,26 @@ void DoublyList<type>::deleteHead(){
 		if(head != NULL)
 			head->prev = NULL;
 		delete ptr;
+	}
+}
+
+template <class type>
+void DoublyList<type>::popHead(){
+		
+	node *ptr;
+	if(head == tail){
+		ptr = head;
+		head = NULL;
+		tail = NULL;
+	}	
+	else if(head!=NULL){
+		
+		node *ptr; 
+		ptr = head; 
+
+		head = head->next;
+		if(head != NULL)
+			head->prev = NULL;
 	}
 }
 

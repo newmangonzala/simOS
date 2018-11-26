@@ -53,11 +53,12 @@ int main(){
  
 
     DoublyList<PrBkCtr*> queue1;
+    DoublyList<PrBkCtr*> queue2;
     DoublyList<PrBkCtr*> queue3;
     ipc tmpIPC;
 
 
-    Sched S1(queue1, queue3 ,M1, tmpIPC);
+    Sched S1(queue1, queue2, queue3 ,M1, tmpIPC);
 
 /*
     for(int i = 0; i < M1.memOfProcesses.size(); i++){

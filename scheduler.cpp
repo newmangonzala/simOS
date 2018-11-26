@@ -1,146 +1,239 @@
 #include "scheduler.h"
 #include <thread> 
 
-Sched::Sched(DoublyList<PrBkCtr*>& Q1, DoublyList<PrBkCtr*>& Q3, mem& A, ipc& MailB){ 
+Sched::Sched(DoublyList<PrBkCtr*>& Q1, DoublyList<PrBkCtr*>& Q2, DoublyList<PrBkCtr*>& Q3, mem& A, ipc& MailB){ 
     queue1 = &Q1;
+    queue2 = &Q2;
     queue3 = &Q3;
     M1 = &A;
     MB = &MailB;
 }
 
 //move current process to the back of the queue
-void Sched::updateQ(){
+void Sched::updateQ(DoublyList<PrBkCtr *>* queue){
 
-    DoublyList<PrBkCtr*>::node* head = queue1->getHead();
-    DoublyList<PrBkCtr*>::node* tail = queue1->getTail();
-    DoublyList<PrBkCtr*>::node* prev = head->next;
+    DoublyList<PrBkCtr*>::node* head = queue->getHead();
+    DoublyList<PrBkCtr*>::node* tail = queue->getTail();
+    DoublyList<PrBkCtr*>::node* prev;
     
-    if(head != tail){
-        tail->next = head;
-    }
-    else{
+    if(head == tail){
         return;
     }
-    
-    queue1->head = prev;
-    queue1->tail = head;
-    queue1->tail->next = NULL;
+
+    tail->next = head;  
+    prev = head->next;
+    queue->head = prev;
+    queue->tail = head;
+    queue->tail->next = NULL;
      
     return;
 }
 void Sched::updateQ2(){
 
-    DoublyList<PrBkCtr*>::node* head = queue1->getHead();
-    queue3->insertNode(head->data);
 
     return;
 }
+
 
 
 void Sched::running2(){
 //run until Ready queue is empty
 
  
-    while(!queue1->isEmpty() || !queue3->isEmpty()){
+    while(!queue1->isEmpty() || !queue2->isEmpty() || !queue3->isEmpty()){
         
         if(!queue1->isEmpty()){
             servingQ = Queue1;
+            cout << "Q1 "<< endl;
 
-            DoublyList<PrBkCtr*>::node* head = queue1->getHead();
-            PrBkCtr* w = head->data;
-            List<string>::node* r = w->PCtmp;
-            basic_string<char> toParse = r->data;
-            basic_string<char>* b = &r->data;
-
-            //print instruction
-            //cout << r->data << endl;
-
-            xml_document<> doc;
-            doc.parse<0>(&(toParse)[0]);
-            xml_node<> * inst = doc.first_node();
-            rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
-
-            int duration = stoi(t->value());
-            w->state = RUNNING;     //updating state to running
-            cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
-            
-
-            auto f = inst->first_attribute("pages");
-            if(f != 0){
-                string s = f->value();
-                vector<int> pages = findPages(s);
-                mmu(w, pages);
-            }
-
-            //inst->remove_first_attribute();
-            if((duration - qtime) <= 0){
-                //wait for qtime - duration
-                std::this_thread::sleep_for(std::chrono::microseconds(duration));
-                
-                r->data = updateTime(r->data, 0);
-                
-                toParse = r->data;
-                doc.parse<0>(&(toParse)[0]);
-                inst = doc.first_node();
-                string c = inst->value();
-
-                if(c.compare("\"yield\"") == 0){
-                    yield(w);
-                    continue;
-                }
-                else if(c.compare("fork") == 0){
-                    fork(w);
-                }
-                else if(c.compare("send") == 0){
-                    //cout << MB->numProcess << endl;
-                    string tmpmail = inst->first_attribute("mailbox")->value();
-                    cout << "child of current pr is " << w->childs[0]->PID << endl;
-                    if(tmpmail.compare("child") == 0){
-
-                        string messg = inst->first_attribute("message")->value();
-                        
-                        auto search = MB->mailboxes.find(w->childs[0]->PID);
-            
-                        search->second->insertNode(messg);
-    
-                    }
-                
-                }
-                else if(c.compare("receive") == 0){
-                    auto search = MB->mailboxes.find(w->PID);
-                    
-                    for(int i=0; i < search->second->size(); i++)
-                        cout << "message received: " << search->second->getHead()->data << endl;
-                        search->second->deleteHead();                
-                }
-                
-                cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
-                w->PCtmp = r->next;     //update PC
-
-            }
-            else{
-                //wait for qtime
-                std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
-                int timep = duration - qtime;
-                //string tn = to_string(timep);
-                r->data = updateTime(r->data, timep);
-                
-            }
+            runRR(queue1);
 
             cout << endl;
-            //move current process to the back of the queue
-            updateQ();
+ 
+            DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+            queue1->popHead();
+            queue2->insertNode(head->data);
             
 
         }
+        else if(!queue2->isEmpty()){
+            servingQ = Queue2;
+            cout << "Q2 "<< endl;
+
+            runRR(queue2);
+
+            cout << endl;
+
+            DoublyList<PrBkCtr*>::node* head = queue2->getHead();
+            queue2->popHead();
+            queue3->insertNode(head->data);
+        }
         else if(!queue3->isEmpty()){
             servingQ = Queue3;
-            cout << "FIX ME" << endl;
+            cout << "Q3 "<< endl;
 
+            runFIFO(queue3);
+
+            cout << endl;
+            updateQ(queue3);
         }
         
     }
     return;
+}
+
+void Sched::runRR(DoublyList<PrBkCtr *>* queue){
+    DoublyList<PrBkCtr*>::node* head = queue->getHead();
+    PrBkCtr* w = head->data;
+    List<string>::node* r = w->PCtmp;
+    basic_string<char> toParse = r->data;
+    
+    //print instruction
+    //cout << r->data << endl;
+
+    xml_document<> doc;
+    doc.parse<0>(&(toParse)[0]);
+    xml_node<> * inst = doc.first_node();
+    rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+
+    int duration = stoi(t->value());
+    w->state = RUNNING;     //updating state to running
+    cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+    
+
+    auto f = inst->first_attribute("pages");
+    if(f != 0){
+        string s = f->value();
+        vector<int> pages = findPages(s);
+        mmu(w, pages);
+    }
+
+
+    if((duration - qtime) <= 0){
+        //wait for qtime - duration
+        std::this_thread::sleep_for(std::chrono::microseconds(duration));
+        
+        r->data = updateTime(r->data, 0);
+        
+        toParse = r->data;
+        doc.parse<0>(&(toParse)[0]);
+        inst = doc.first_node();
+        string c = inst->value();
+
+        if(c.compare("\"yield\"") == 0){
+            yield(w);
+            return;
+        }
+        else if(c.compare("fork") == 0){
+            fork(w);
+        }
+        else if(c.compare("send") == 0){
+            //cout << MB->numProcess << endl;
+            string tmpmail = inst->first_attribute("mailbox")->value();
+            cout << "child of current pr is " << w->childs[0]->PID << endl;
+            if(tmpmail.compare("child") == 0){
+
+                string messg = inst->first_attribute("message")->value();
+                
+                auto search = MB->mailboxes.find(w->childs[0]->PID);
+    
+                search->second->insertNode(messg);
+
+            }
+        
+        }
+        else if(c.compare("receive") == 0){
+            auto search = MB->mailboxes.find(w->PID);
+            
+            for(int i=0; i < search->second->size(); i++)
+                cout << "message received: " << search->second->getHead()->data << endl;
+                search->second->deleteHead();                
+        }
+        
+        cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
+        w->PCtmp = r->next;     //update PC
+
+    }
+    else{
+        //wait for qtime
+        std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
+        int timep = duration - qtime;
+        //string tn = to_string(timep);
+        r->data = updateTime(r->data, timep);
+        
+    }
+}
+
+void Sched::runFIFO(DoublyList<PrBkCtr *>* queue){
+    DoublyList<PrBkCtr*>::node* head = queue->getHead();
+    PrBkCtr* w = head->data;
+    List<string>::node* r = w->PCtmp;
+    basic_string<char> toParse = r->data;
+    
+    //print instruction
+    //cout << r->data << endl;
+
+    xml_document<> doc;
+    doc.parse<0>(&(toParse)[0]);
+    xml_node<> * inst = doc.first_node();
+    rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+
+    int duration = stoi(t->value());
+    w->state = RUNNING;     //updating state to running
+    cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+    
+
+    auto f = inst->first_attribute("pages");
+    if(f != 0){
+        string s = f->value();
+        vector<int> pages = findPages(s);
+        mmu(w, pages);
+    }
+  
+    //wait for qtime - duration
+    std::this_thread::sleep_for(std::chrono::microseconds(duration));
+       
+    toParse = r->data;
+    doc.parse<0>(&(toParse)[0]);
+    inst = doc.first_node();
+    string c = inst->value();
+
+    if(c.compare("\"yield\"") == 0){
+        yield(w);
+        return;
+    }
+    else if(c.compare("fork") == 0){
+        fork(w);
+    }
+    else if(c.compare("send") == 0){
+        //cout << MB->numProcess << endl;
+        string tmpmail = inst->first_attribute("mailbox")->value();
+        cout << "child of current pr is " << w->childs[0]->PID << endl;
+        if(tmpmail.compare("child") == 0){
+
+            string messg = inst->first_attribute("message")->value();
+            
+            auto search = MB->mailboxes.find(w->childs[0]->PID);
+
+            search->second->insertNode(messg);
+
+        }
+    
+    }
+    else if(c.compare("receive") == 0){
+        auto search = MB->mailboxes.find(w->PID);
+        
+        for(int i=0; i < search->second->size(); i++)
+            cout << "message received: " << search->second->getHead()->data << endl;
+            search->second->deleteHead();                
+    }
+    
+    cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
+    w->PCtmp = r->next;     //update PC
+
+    r->data = updateTime(r->data, 0);
+        
+
 }
 
 string Sched::updateTime(string instruction, int newTime){

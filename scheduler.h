@@ -27,7 +27,7 @@ class Sched{
     public:
     
     //Sched(List<PrBkCtr*>& ,mem&);
-    Sched(DoublyList<PrBkCtr*>& ,DoublyList<PrBkCtr*>& ,mem&, ipc&);
+    Sched(DoublyList<PrBkCtr*>& ,DoublyList<PrBkCtr*>& , DoublyList<PrBkCtr*>& ,mem&, ipc&);
     //Sched();
 
     int qtime = 20; //20 milliseconds
@@ -41,7 +41,7 @@ class Sched{
     ipc* MB; //mailboxes
 
     //move pcb running to back of the queue 
-    void updateQ();
+    void updateQ(DoublyList<PrBkCtr *>*);
     void updateQ2();
 
 
@@ -49,6 +49,8 @@ class Sched{
 
     //runs the processes in READY
     void running();
+    void runRR(DoublyList<PrBkCtr *>*);
+    void runFIFO(DoublyList<PrBkCtr *>*);
     void running2();
     void fork(PrBkCtr*);
     void yield(PrBkCtr*);
