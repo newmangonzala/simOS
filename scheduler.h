@@ -52,6 +52,7 @@ class Sched{
     void runFIFO(DoublyList<PrBkCtr *>*);
     void running();
     void fork(PrBkCtr*);
+    void fork2(PrBkCtr*);
 
     void insertBackToQ(DoublyList<PrBkCtr *>* , DoublyList<PrBkCtr*>::node* );
 
@@ -59,6 +60,7 @@ class Sched{
     void send(xml_node<> * , PrBkCtr* );
     void receive(PrBkCtr*);
 
+    DoublyList<PrBkCtr*>::node* findProcessNode(PrBkCtr*);
 
     void write(PrBkCtr*);
     void read(PrBkCtr*);

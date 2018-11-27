@@ -81,7 +81,7 @@ int main(){
         
         S1.queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
 
-        tmpIPC.PrTable.insert({pcb->mailbox.id, S1.queue1->tail});
+        tmpIPC.PrTable.insert({pcb->PID, S1.queue1->tail});
 
     }
 

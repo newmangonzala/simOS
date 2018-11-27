@@ -228,18 +228,35 @@ void DoublyList<type>::popHead(){
 template <class type>
 void DoublyList<type>::deleteNode(node* tmpNode){
 		
-	if(tmpNode->next == NULL){
+
+	if(tmpNode->prev == NULL){
+		deleteHead();
+	}
+	else if(tmpNode->next == NULL){
 		tmpNode->prev->next = NULL;
 		delete tmpNode;
-	}
-	else if(tmpNode->prev == NULL){
-		deleteHead();
 	}
 	else{
 		tmpNode->prev->next = tmpNode->next;	
 		delete tmpNode;
 	}
-}	
+}
+
+/*
+template <class type>
+void DoublyList<type>::removeNode(node* tmpNode){
+		
+	if(tmpNode->next == NULL){
+		tmpNode->prev->next = NULL;
+	}
+	else if(tmpNode->prev == NULL){
+		popHead();
+	}
+	else{
+		tmpNode->prev->next = tmpNode->next;	
+	}
+}
+*/
 
 /*
 template <typename type>

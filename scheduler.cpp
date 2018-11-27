@@ -47,6 +47,9 @@ void Sched::running(){
             if(runRR(currentPr)){
                 cout << endl;
                 queue2->insertNode(currentPr);
+                currentPr->state = READY;
+                MB->PrTable.insert({currentPr->PID, queue2->tail});
+                currentPr->queue = 2;
             }
         }
         
@@ -64,6 +67,9 @@ void Sched::running(){
             if(runRR(currentPr)){
                 cout << endl;
                 queue2->insertNode(currentPr);
+                currentPr->state = READY;
+                MB->PrTable.insert({currentPr->PID, queue2->tail});
+                currentPr->queue = 2;
             }
         }
 
@@ -97,7 +103,7 @@ bool Sched::runRR(PrBkCtr* PrTable){
 
     int duration = parseTime(inst);
 
-    PrTable->state = RUNNING;     //updating state to running
+    //PrTable->state = RUNNING;     //updating state to running
     cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
     
     auto f = inst->first_attribute("pages");
@@ -122,6 +128,9 @@ bool Sched::runRR(PrBkCtr* PrTable){
         }
         else if(c.compare("fork") == 0){
             fork(PrTable);
+        }
+        else if(c.compare("fork2") == 0){
+            fork2(PrTable);
         }
         else if(c.compare("send") == 0){
             send(inst, PrTable);
@@ -190,6 +199,9 @@ void Sched::runFIFO(DoublyList<PrBkCtr *>* queue){
     else if(c.compare("fork") == 0){
         fork(PrTable);
     }
+    else if(c.compare("fork2") == 0){
+        fork2(PrTable);
+    }
     else if(c.compare("send") == 0){
         send(inst, PrTable);
     }
@@ -223,16 +235,20 @@ string Sched::updateTime(string instruction, int newTime){
 
 void Sched::send(xml_node<> * inst, PrBkCtr* w){
     
-    //cout << MB->numProcess << endl;
     string tmpmail = inst->first_attribute("mailbox")->value();
-    cout << "child of current pr is " << w->childs[0]->PID << endl;
+    
     if(tmpmail.compare("child") == 0){
 
         string messg = inst->first_attribute("message")->value();
-        
-        auto search = MB->mailboxes.find(w->childs[0]->PID);
 
-        search->second->insertNode(messg);
+        for(int i = w->childs.size() - 1; i >= 0; i--){
+
+            cout << "child of current pr is " << w->childs[i]->PID << endl;
+        
+            auto search = MB->mailboxes.find(w->childs[i]->PID);
+            search->second->insertNode(messg);
+        }
+
     }
 }
 
@@ -300,32 +316,93 @@ void Sched::fork(PrBkCtr* w){
                 
                 //tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
                 MB->mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
+                MB->PrTable.insert({pcb->PID, queue1->tail});
+
+    return;
+}
+
+void Sched::fork2(PrBkCtr* w){
+
+    //cout << "forking " << w->PID << endl;
+    xml_document<> doc;
+    xml_node<> * root_node;
+    ifstream file("process.xml");
+    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+
+    //make sure to zero terminate the buffer
+    buffer.push_back('\0');
+
+    doc.parse<0>(&buffer[0]);
+    root_node = doc.first_node("Processes");
+    root_node = root_node->first_node("child2");
+
+
+    List<string> instructions;
+    xml_document<> tmpPr;
+
+    for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
+        if(inst == 0){
+            cout << "no node" << endl;
+            continue;
+        }
+
+        xml_node<char>* SInst = tmpPr.clone_node(inst);
+
+        tmpPr.append_node(SInst);
+        string xml_as_string = "";
+        print(std::back_inserter(xml_as_string), tmpPr);
+        //print instruction
+        //std::cout << "-----\n" << xml_as_string << std::endl;
+
+        instructions.insertNode(xml_as_string);
+
+        tmpPr.remove_first_node();
+    }
+
+    //PrBkCtr pcb(instructions.getHead());
+    PrBkCtr* pcb = new PrBkCtr(instructions.getHead());
+    pcb->state = READY;              //change PCB state to READY
+    pcb->parent = w->PID;
+    w->parent = true;
+    w->childs.push_back(pcb);
+    queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+    
+    //tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
+    MB->mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
+    MB->PrTable.insert({pcb->PID, queue1->tail});
 
     return;
 }
 
 void Sched::yield(PrBkCtr* w){
 
-    if(checkChilds(w)){
-            while(checkChilds(w)){
-                auto childProcess = w->childs.back();           //get childs
-                switch(childProcess->state) {
-                    case READY:
-                        {
-                        auto node = MB->PrTable.find(childProcess->PID);
-                        terminatePr(node->second);
-                        cout << "child" << childProcess->PID << " of process " << w->PID << " has been terminated" << endl;
-                        }
-                        break;
-                    case TERMINANTED:
-                        break;
-                    default:
-                        cout << "ERROR with child states" << endl;
-                        break;
+
+    while(checkChilds(w)){
+        PrBkCtr* childProcess = w->childs.back();           //get childs
+        switch(childProcess->state) {
+            case READY:
+                {
+                auto node = MB->PrTable.find(childProcess->PID);
+
+                yield(childProcess);
+
+                //removeNode(node);
+                childProcess->state = TERMINANTED;
+                DoublyList<PrBkCtr*>::node* tmp = findProcessNode(childProcess);
+
+                terminatePr(tmp);
+                cout << "- child" << childProcess->PID << " of process " << w->PID << " has been terminated" << endl;
                 }
-                w->childs.pop_back();
-            }
+                break;
+            case TERMINANTED:
+                break;
+            default:
+                cout << "ERROR with child states" << endl;
+                break;
+        }
+        w->childs.pop_back();
     }
+    
             
     w->state = TERMINANTED;                         //updating state to terminated
     if(servingQ == Queue1){
@@ -342,6 +419,25 @@ void Sched::yield(PrBkCtr* w){
     }
     
     return;
+}
+
+DoublyList<PrBkCtr*>::node* Sched::findProcessNode(PrBkCtr* process){
+
+    if(process->queue == 1){
+        DoublyList<PrBkCtr*>::node* i = queue1->getHead();
+        for(; i->data->PID != process->PID; i = i->next){}
+        return i;
+    }
+    else if(process->queue == 2){
+        DoublyList<PrBkCtr*>::node* i = queue2->getHead();
+        for(; i->data->PID != process->PID; i = i->next){}
+        return i;
+    }
+    else{
+        DoublyList<PrBkCtr*>::node* i = queue3->getHead();
+        for(; i->data->PID != process->PID; i = i->next){}
+        return i;
+    }
 }
 
 vector<int> Sched::findPages(string s){
