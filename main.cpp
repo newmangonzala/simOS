@@ -8,6 +8,7 @@
 #include <thread> 
 #include <queue>
 
+
 #define numFrames 10 //256
 
 #include "rapidxml.hpp"
@@ -39,6 +40,16 @@ using namespace std;
 using namespace rapidxml;
 
 int PrBkCtr::id = 0;
+
+class thread_obj { 
+public: 
+	void operator()(int x) 
+	{ 
+		for (int i = 0; i < x; i++) 
+			cout << "Thread using function"
+				" object as callable\n"; 
+	} 
+}; 
 
 
 int main(){
@@ -74,8 +85,25 @@ int main(){
 
     }
 
+    /*
+    thread th1(&Sched::running, S1);
 
-    S1.running2();
+    thread th2(&Sched::running, S1);
+
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+    th1.join();
+    th2.join();
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+    auto duration = duration_cast<microseconds>( t2 - t1 ).count();
+
+    cout << duration;
+    */
+
+    
+    S1.running();
     
     cout << "-!" << endl;
   

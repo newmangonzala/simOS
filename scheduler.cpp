@@ -28,48 +28,46 @@ void Sched::updateQ(DoublyList<PrBkCtr *>* queue){
      
     return;
 }
-void Sched::updateQ2(){
 
+void Sched::running(){
+    //run until Ready queues are empty
 
-    return;
-}
-
-
-
-void Sched::running2(){
-//run until Ready queue is empty
-
- 
     while(!queue1->isEmpty() || !queue2->isEmpty() || !queue3->isEmpty()){
         
         if(!queue1->isEmpty()){
             servingQ = Queue1;
             //cout << "Q1 "<< endl;
 
-            runRR(queue1);
-
-            cout << endl;
- 
-            updateQ(queue1);
-            //DoublyList<PrBkCtr*>::node* head = queue1->getHead();
-            //queue1->popHead();
-            //queue2->insertNode(head->data);
+            DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+            queue1->popHead();
             
+            PrBkCtr* currentPr = head->data;
+            currentPr->state = RUNNING;     //updating state to running
 
+            if(runRR(currentPr)){
+                cout << endl;
+                queue2->insertNode(currentPr);
+            }
         }
-        /*
+        
         else if(!queue2->isEmpty()){
             servingQ = Queue2;
-            cout << "Q2 "<< endl;
-
-            runRR(queue2);
-
-            cout << endl;
+            //cout << "Q2 "<< endl;
 
             DoublyList<PrBkCtr*>::node* head = queue2->getHead();
+
             queue2->popHead();
-            queue3->insertNode(head->data);
+            
+            PrBkCtr* currentPr = head->data;
+            currentPr->state = RUNNING;     //updating state to running
+
+            if(runRR(currentPr)){
+                cout << endl;
+                queue2->insertNode(currentPr);
+            }
         }
+
+        /*
         else if(!queue3->isEmpty()){
             servingQ = Queue3;
             cout << "Q3 "<< endl;
@@ -84,11 +82,10 @@ void Sched::running2(){
     return;
 }
 
-void Sched::runRR(DoublyList<PrBkCtr *>* queue){
-    DoublyList<PrBkCtr*>::node* head = queue->getHead();
-    PrBkCtr* w = head->data;
-    List<string>::node* r = w->PCtmp;
-    basic_string<char> toParse = r->data;
+bool Sched::runRR(PrBkCtr* PrTable){
+
+    List<string>::node* instruction = PrTable->PCtmp;
+    basic_string<char> toParse = instruction->data;
     
     //print instruction
     //cout << r->data << endl;
@@ -96,18 +93,18 @@ void Sched::runRR(DoublyList<PrBkCtr *>* queue){
     xml_document<> doc;
     doc.parse<0>(&(toParse)[0]);
     xml_node<> * inst = doc.first_node();
-    rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
 
-    int duration = stoi(t->value());
-    w->state = RUNNING;     //updating state to running
-    cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+
+    int duration = parseTime(inst);
+
+    PrTable->state = RUNNING;     //updating state to running
+    cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
     
-
     auto f = inst->first_attribute("pages");
     if(f != 0){
         string s = f->value();
         vector<int> pages = findPages(s);
-        mmu(w, pages);
+        mmu(PrTable, pages);
     }
 
 
@@ -115,51 +112,32 @@ void Sched::runRR(DoublyList<PrBkCtr *>* queue){
         //wait for qtime - duration
         std::this_thread::sleep_for(std::chrono::microseconds(duration));
         
-        r->data = updateTime(r->data, 0);
+        instruction->data = updateTime(instruction->data, 0);
         
-        toParse = r->data;
-        doc.parse<0>(&(toParse)[0]);
-        inst = doc.first_node();
         string c = inst->value();
 
         if(c.compare("\"yield\"") == 0){
-            yield(w);
-            return;
+            yield(PrTable);
+            return false;
         }
         else if(c.compare("fork") == 0){
-            fork(w);
+            fork(PrTable);
         }
         else if(c.compare("send") == 0){
-            //cout << MB->numProcess << endl;
-            string tmpmail = inst->first_attribute("mailbox")->value();
-            cout << "child of current pr is " << w->childs[0]->PID << endl;
-            if(tmpmail.compare("child") == 0){
-
-                string messg = inst->first_attribute("message")->value();
-                
-                auto search = MB->mailboxes.find(w->childs[0]->PID);
-    
-                search->second->insertNode(messg);
-
-            }
-        
+            send(inst, PrTable);
         }
         else if(c.compare("receive") == 0){
-            auto search = MB->mailboxes.find(w->PID);
-            
-            for(int i=0; i < search->second->size(); i++)
-                cout << "message received: " << search->second->getHead()->data << endl;
-                search->second->deleteHead();                
+            receive(PrTable);                 
         }
         else if(c.compare("write") == 0){
-            write(w);
+            write(PrTable);
         }
         else if(c.compare("read") == 0){
-            read(w);
+            read(PrTable);
         }
         
-        cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
-        w->PCtmp = r->next;     //update PC
+        cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
+        PrTable->PCtmp = instruction->next;     //update PC
 
     }
     else{
@@ -167,79 +145,62 @@ void Sched::runRR(DoublyList<PrBkCtr *>* queue){
         std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
         int timep = duration - qtime;
         //string tn = to_string(timep);
-        r->data = updateTime(r->data, timep);
+        instruction->data = updateTime(instruction->data, timep);
         
     }
+    return true;
 }
 
 void Sched::runFIFO(DoublyList<PrBkCtr *>* queue){
     DoublyList<PrBkCtr*>::node* head = queue->getHead();
-    PrBkCtr* w = head->data;
-    List<string>::node* r = w->PCtmp;
-    basic_string<char> toParse = r->data;
+    PrBkCtr* PrTable = head->data;
+    List<string>::node* instruction = PrTable->PCtmp;
+    basic_string<char> toParse = instruction->data;
     
     //print instruction
-    //cout << r->data << endl;
+    //cout << instruction->data << endl;
 
     xml_document<> doc;
     doc.parse<0>(&(toParse)[0]);
     xml_node<> * inst = doc.first_node();
-    rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
 
-    int duration = stoi(t->value());
-    w->state = RUNNING;     //updating state to running
-    cout << "current process: "<< w->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+    int duration = parseTime(inst);
+
+    PrTable->state = RUNNING;     //updating state to running
+    cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
     
 
     auto f = inst->first_attribute("pages");
     if(f != 0){
         string s = f->value();
         vector<int> pages = findPages(s);
-        mmu(w, pages);
+        mmu(PrTable, pages);
     }
   
     //wait for qtime - duration
     std::this_thread::sleep_for(std::chrono::microseconds(duration));
        
-    toParse = r->data;
-    doc.parse<0>(&(toParse)[0]);
-    inst = doc.first_node();
+    
     string c = inst->value();
 
     if(c.compare("\"yield\"") == 0){
-        yield(w);
+        yield(PrTable);
         return;
     }
     else if(c.compare("fork") == 0){
-        fork(w);
+        fork(PrTable);
     }
     else if(c.compare("send") == 0){
-        //cout << MB->numProcess << endl;
-        string tmpmail = inst->first_attribute("mailbox")->value();
-        cout << "child of current pr is " << w->childs[0]->PID << endl;
-        if(tmpmail.compare("child") == 0){
-
-            string messg = inst->first_attribute("message")->value();
-            
-            auto search = MB->mailboxes.find(w->childs[0]->PID);
-
-            search->second->insertNode(messg);
-
-        }
-    
+        send(inst, PrTable);
     }
     else if(c.compare("receive") == 0){
-        auto search = MB->mailboxes.find(w->PID);
-        
-        for(int i=0; i < search->second->size(); i++)
-            cout << "message received: " << search->second->getHead()->data << endl;
-            search->second->deleteHead();                
+        receive(PrTable);              
     }
     
-    cout << "current process: "<< w->PID << " of name: " << inst->value() << " has been terminated" << endl;
-    w->PCtmp = r->next;     //update PC
+    cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
+    PrTable->PCtmp = instruction->next;     //update PC
 
-    r->data = updateTime(r->data, 0);
+    instruction->data = updateTime(instruction->data, 0);
         
 
 }
@@ -258,6 +219,38 @@ string Sched::updateTime(string instruction, int newTime){
 
     return instruction;
 }
+
+
+void Sched::send(xml_node<> * inst, PrBkCtr* w){
+    
+    //cout << MB->numProcess << endl;
+    string tmpmail = inst->first_attribute("mailbox")->value();
+    cout << "child of current pr is " << w->childs[0]->PID << endl;
+    if(tmpmail.compare("child") == 0){
+
+        string messg = inst->first_attribute("message")->value();
+        
+        auto search = MB->mailboxes.find(w->childs[0]->PID);
+
+        search->second->insertNode(messg);
+    }
+}
+
+void Sched::receive(PrBkCtr* w){
+    auto search = MB->mailboxes.find(w->PID);
+    
+    for(int i=0; i < search->second->size(); i++)
+        cout << "message received: " << search->second->getHead()->data << endl;
+        search->second->deleteHead();
+}
+
+
+int Sched::parseTime(xml_node<> * inst){
+
+    rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
+    return stoi(t->value());
+}
+
 
 void Sched::fork(PrBkCtr* w){
 
@@ -321,6 +314,7 @@ void Sched::yield(PrBkCtr* w){
                         {
                         auto node = MB->PrTable.find(childProcess->PID);
                         terminatePr(node->second);
+                        cout << "child" << childProcess->PID << " of process " << w->PID << " has been terminated" << endl;
                         }
                         break;
                     case TERMINANTED:
@@ -335,52 +329,18 @@ void Sched::yield(PrBkCtr* w){
             
     w->state = TERMINANTED;                         //updating state to terminated
     if(servingQ == Queue1){
-            queue1->deleteHead();
+            //queue1->deleteHead();
             cout << "process " << w->PID << " has been terminated from queue 1" << endl;
     }
     else if(servingQ == Queue2){
-            queue2->deleteHead();
+            //queue2->deleteHead();
             cout << "process " << w->PID << " has been terminated from queue 2" << endl;
     }
     else{
-        queue3->deleteHead();
+        //queue3->deleteHead();
         cout << "process " << w->PID << " has been terminated from queue 3" << endl;
     }
     
-/*
-    if(w->childs.size() > 0){
-        auto childProcess = w->childs[0];           //get childs
-        List<PrBkCtr*>::node* prev = queue1->getHead();         //get current process
- 
-        int size = queue1->size();
-        if(size > 1){
-            
-            List<PrBkCtr*>::node* tmpPr = prev->next;
-            PrBkCtr* tmp = tmpPr->data;
-
-            while(tmp != childProcess && tmpPr->next != NULL){ //iterate through each process to find child
-                prev = tmpPr;
-                tmpPr = tmpPr->next;
-                tmp = tmpPr->data;
-            }
-            if(tmp == childProcess){
-                tmp->state = TERMINANTED;               //updating state of child to terminated
-                cout << "child of parent " << w->PID << " with id of " << tmp->PID << " has been terminated" << endl; 
-            }
-            if(tmpPr != NULL){
-                prev->next = tmpPr->next;
-                delete tmpPr;
-            }
-        }
-    
-    }
-
-    w->state = TERMINANTED;                         //updating state to terminated
-
-    queue1->deleteHead();
-
-    cout << "process " << w->PID << " has been terminated" << endl;
-*/
     return;
 }
 

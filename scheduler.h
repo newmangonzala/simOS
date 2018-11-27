@@ -42,17 +42,23 @@ class Sched{
 
     //move pcb running to back of the queue 
     void updateQ(DoublyList<PrBkCtr *>*);
-    void updateQ2();
 
 
     void terminatePr(DoublyList<PrBkCtr*>::node*);
 
     //runs the processes in READY
-    void running();
-    void runRR(DoublyList<PrBkCtr *>*);
+
+    bool runRR(PrBkCtr *);
     void runFIFO(DoublyList<PrBkCtr *>*);
-    void running2();
+    void running();
     void fork(PrBkCtr*);
+
+    void insertBackToQ(DoublyList<PrBkCtr *>* , DoublyList<PrBkCtr*>::node* );
+
+    int parseTime(xml_node<> *);
+    void send(xml_node<> * , PrBkCtr* );
+    void receive(PrBkCtr*);
+
 
     void write(PrBkCtr*);
     void read(PrBkCtr*);
