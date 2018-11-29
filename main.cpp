@@ -10,6 +10,7 @@
 
 
 #define numFrames 10 //256
+#define maxNumPages 8
 
 #include "rapidxml.hpp"
 

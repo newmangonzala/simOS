@@ -38,7 +38,8 @@ class mem{
 
 
     
-    short int** mainMem = new short int*[256];   //128 pages of 16kb
+    short int** mainMem = new short int*[numFrames];   //128 pages of 16kb
+    short int** TLB = new short int*[maxNumPages];
 
     queue<short int> freeFrames;
 
@@ -60,7 +61,7 @@ class pageTable{
     //int** entries = new int*[256];
     
     pageTable(int priority){
-        for(int i = 0 ; i < priority*3; i++){
+        for(int i = 0 ; i < priority*2; i++){
             int * tmp = new int[2];
             tmp[0] = 0; //initialize valid bits to 0
             entries.push_back(tmp);

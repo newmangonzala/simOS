@@ -9,7 +9,12 @@ mem::mem(int numPr){
     numProcess = numPr;
     for(int i = 0 ; i < numFrames; i++){
         freeFrames.push(i);
-        mainMem[i] = new short int[2];
+        //second chance bit , PID, page number
+        mainMem[i] = new short int[3];
+    }
+    for(int i = 0 ; i < maxNumPages; i++){
+        //Valid bit, Process ID, Page number, Frame number
+        TLB[i] = new short int[4];
     }
     currentFrameIndex = 0;
 
@@ -147,7 +152,8 @@ void mem::loadApp(List<std::string>::node* ptr){
     return;
 }
 
-void mem::mmu(){
+void mem::
+mmu(){
 
 
 

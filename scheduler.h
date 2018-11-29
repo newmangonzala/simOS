@@ -73,6 +73,9 @@ class Sched{
     string updateTime(string, int);
     
     void mmu(PrBkCtr*, vector<int>);
+    bool lookUpTLB(int, int);
+    bool loopUpPageTlb(PrBkCtr*, int);
+    void pageReplacement(PrBkCtr* , int);
 };
 
 

@@ -29,47 +29,34 @@ class PrBkCtr{
             string R2;
             string R3;
             string R4;
-        }Registers; 
+        }Registers;
+
         STATE state;                                //Process state
         unsigned int PID;                           //Unique process number ID
-        unsigned int ParentPID;                     
-        string baseAddress;
-        //List<mem::instrucion>::node* PC;            //Program Counter
-        List<std::string>::node* PCtmp;
-        unsigned int Privalage;                     //Privalage
-
-        // priorities, scheduling queue pointers
-        unsigned int priority;
-        //unsigned int queue;
+        unsigned int ParentPID;
+        bool parent;
+        int queue;                     
+        short int PTLR;                             //Page Table Length Register
+        List<std::string>::node* PCtmp;             //Program Counter
+        unsigned int priority;                      // priorities, scheduling queue pointers
+        vector<PrBkCtr*> childs;
+        pageTable* pgTbl;                           //page table pointer
         
-        // memory allocated
         
-    
+        //unsigned int Privalage;                     //Privalage
+        
+        // For critical section
         int sharedMem;
         semaphore* rw_mutex;
         semaphore* mutex;
         int read_count = 0;
         
-           
-        unsigned int IOinfo;
-        bool parent;
-        vector<PrBkCtr*> childs;
-        int queue;
-
+        //Mailboxes
         struct createMailbox{
             List<string> messages;
             int id;
         };
         createMailbox mailbox;
-
-        //memory limits
-        pageTable* pgTbl;
-        
-        //struct accounting{
-            //time constraints
-            //CPU used
-            //
-        //}accounting;
 
 };
 

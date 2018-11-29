@@ -11,18 +11,8 @@ PrBkCtr::PrBkCtr(){
     
     state = NEW;
     PID = id;
-    Privalage = 0;
+    //Privalage = 0;
 }
-
-/*
-PrBkCtr::PrBkCtr(List<mem::instrucion>::node* v){
-    id++;  
-    PC = v;     //PC points to current instruction
-    PID = id;   //unique ID
-    ParentPID = 0; 
-    state = NEW;    //State of the process
-}
-*/
 
 PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     id++;  
@@ -36,7 +26,7 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
 
     queue = 1;
 
-    pgTbl =  new pageTable(3);
+    pgTbl =  new pageTable(4);
 
     rw_mutex = new semaphore;
     rw_mutex->value = 1;
