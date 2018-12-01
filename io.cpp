@@ -34,3 +34,51 @@ void Io::interruptHandler(){
     //cout << "IO for " << random << endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(random));
 }
+
+
+void Io::write(Sched* S1, PrBkCtr* pr){
+
+    //writer
+    wait(S1, pr->rw_mutex, pr);
+
+    //writing
+    signal(S1, pr->rw_mutex, pr);
+}
+
+void Io::read(Sched* S1, PrBkCtr* pr){
+    
+    //reader
+    wait(S1, pr->mutex, pr);
+    pr->read_count++;
+    if(pr->read_count == 1)
+        wait(S1, pr->rw_mutex, pr);
+    signal(S1,pr->mutex, pr);
+ 
+    //reading
+
+    wait(S1, pr->mutex, pr);
+    pr->read_count--;
+    if(pr->read_count == 0)
+        signal(S1, pr->rw_mutex, pr);
+    signal(S1, pr->mutex, pr);
+}
+
+void Io::wait(Sched* S1, semaphore *S, PrBkCtr* process){
+    S->value--;
+    if(S->value < 0){
+        S->processes.insertNode(process);
+        S1->servingQ->deleteHead();
+        //block
+        process->state = WAITING;
+    }
+}
+
+void Io::signal(Sched* S1, semaphore *S, PrBkCtr* process){
+    S->value++;
+    if(S->value <= 0){
+        //wakeup
+        S->processes.getHead()->data->state = READY;
+        S->processes.deleteHead();
+        S1->queue1->insertNode(process);
+    }
+}

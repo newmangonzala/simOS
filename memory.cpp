@@ -24,7 +24,7 @@ mem::mem(int numPr){
 
 
 //loader
-void mem::loadApps(){
+void mem::linker(){
 
     //open file of dummy proccesses 
     ifstream file("process.xml");
@@ -98,54 +98,6 @@ void mem::loadApps(){
     return;
 }
 
-void mem::loadPCBs(){
-
-    xml_document<> doc;
-
-
-    for(int i = 0; i < memOfProcesses.size(); i++){
-
-        auto listOfInst = memOfProcesses[i];
-        
-        List<mem::instrucion> app1;
-
-        for(List<std::string>::node* tmp = listOfInst.getHead(); tmp != NULL; tmp = tmp->next){
-            auto Sinst = tmp->data;
-
-            //std::cout << "-----\n" << Sinst << std::endl;
-/*
-            doc.parse<0>(&Sints[0]);
-
-            
-            instrucion I;
-
-            //iterate throught the app to get all the instructions
-            for (xml_node<> * inst = doc.first_node(); inst; inst = inst->next_sibling()){
-                
-                I.type = inst->value();
-
-                rapidxml::xml_attribute<char>* t = inst->first_attribute("time");
-
-                if(t != 0){
-                    I.time = stoi(t->value());
-                }
-
-                app1.insertNode(I);
-            }
-            */
-
-        }
-
-        
-
-
-        
-        qOfPr.push_back(app1);
-        
-    }
-
-    return;
-}
 
 
 void mem::releaseFrames(pageTable* currentProcess){
@@ -181,6 +133,29 @@ void mem::mmu(PrBkCtr* process, vector<int> pages){
     }
 
     return;
+}
+
+vector<int> mem::findPages(string s){
+
+    vector<int> pages;
+
+    stringstream ss;
+
+    ss << s;
+
+    string temp;
+
+    int page;
+
+    while(!ss.eof()){
+
+        ss >> temp;
+        if(stringstream(temp) >> page){
+            pages.push_back(page);
+        } 
+        temp = "";
+    }
+    return pages;
 }
 
 bool mem::lookUpTLB(int PID, int page){

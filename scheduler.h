@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <string>
-#include <sstream> 
+
 #include <queue>
 #include <exception>
 #include <vector>
@@ -14,13 +14,15 @@
 
 
 
-#include "rapidxml.hpp"
+//#include "rapidxml.hpp"
 
-#include "linkedlist.h"
+//#include "linkedlist.h"
 
 #include "pcb.h"
 
-//pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+#include "io.h"
+
+//class Io;
 
 #include <windows.h>
 
@@ -73,12 +75,9 @@ class Sched{
     
     public:
     
-    //Sched(List<PrBkCtr*>& ,mem&);
     Sched(DoublyList<PrBkCtr*>* ,DoublyList<PrBkCtr*>* , DoublyList<PrBkCtr*>* ,mem&, ipc&);
-    //Sched();
 
-    //int qtime = 20; //20 milliseconds
-    QState servingQ;
+    DoublyList<PrBkCtr*>* servingQ;        //serving queue
 
     DoublyList<PrBkCtr*>* queue1;   //round robin //this is the ready queue
     DoublyList<PrBkCtr*>* queue2;   //round robin
@@ -87,19 +86,14 @@ class Sched{
     mem* M1;
     ipc* MB; //mailboxes
 
-    //move pcb running to back of the queue 
-    void updateQ(DoublyList<PrBkCtr *>*);
-
-
     void terminatePr(DoublyList<PrBkCtr*>::node*);
 
     //runs the processes in READY
 
-    bool runRR(PrBkCtr *);
+    bool runRR(int, PrBkCtr *);
     //void runFIFO(DoublyList<PrBkCtr *>*);
     void* running();
-    void fork(PrBkCtr*);
-    void fork2(PrBkCtr*);
+    void fork(PrBkCtr*, int);
 
     void insertBackToQ(DoublyList<PrBkCtr *>* , DoublyList<PrBkCtr*>::node* );
 
@@ -109,18 +103,12 @@ class Sched{
 
     pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-    void write(PrBkCtr*);
-    void read(PrBkCtr*);
-    void wait(semaphore*, PrBkCtr*);
-    void signal(semaphore*, PrBkCtr*);
+
 
     void yield(PrBkCtr*);
     bool checkChilds(PrBkCtr*);
-    vector<int> findPages(string);
     string updateTime(string, int);
     
-    ////memory management
-
 
     void printProcess(PrBkCtr*);
     void printMainMem();

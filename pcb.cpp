@@ -16,7 +16,7 @@ PrBkCtr::PrBkCtr(){
 
 PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     id++;  
-    PCtmp = nextInst;     //PC points to current instruction
+    PC = nextInst;     //PC points to current instruction
     PID = id;   //unique ID
     ParentPID = 0; 
     state = NEW;    //State of the process

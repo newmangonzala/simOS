@@ -28,8 +28,8 @@ class mem{
     };
 
     int numProcess;
-    void loadApps();     //this is the loader
-    void loadPCBs();
+    void linker();     //this is the loader
+
   
     vector<List<mem::instrucion>> qOfPr;
     vector<List<std::string>> memOfProcesses;
@@ -47,6 +47,7 @@ class mem{
     short int currentFrameIndex;
 
     void mmu(PrBkCtr*, vector<int>);
+    vector<int> findPages(string);
     bool lookUpTLB(int, int);
     bool loopUpPageTlb(PrBkCtr*, int);
     void pageSwapper(PrBkCtr* , int);

@@ -10,26 +10,6 @@ Sched::Sched(DoublyList<PrBkCtr*>* Q1, DoublyList<PrBkCtr*>* Q2, DoublyList<PrBk
     MB = &MailB;
 }
 
-//move current process to the back of the queue
-void Sched::updateQ(DoublyList<PrBkCtr *>* queue){
-
-    DoublyList<PrBkCtr*>::node* head = queue->getHead();
-    DoublyList<PrBkCtr*>::node* tail = queue->getTail();
-    DoublyList<PrBkCtr*>::node* prev;
-    
-    if(head == tail){
-        return;
-    }
-
-    tail->next = head;  
-    prev = head->next;
-    queue->head = prev;
-    queue->tail = head;
-    queue->tail->next = NULL;
-     
-    return;
-}
-
 void* Sched::running(){
     //run until Ready queues are empty
 
@@ -39,7 +19,7 @@ void* Sched::running(){
     while(!queue1->isEmpty() || !queue2->isEmpty() || !queue3->isEmpty()){
         
         if(!queue1->isEmpty()){
-            servingQ = Queue1;
+            servingQ = queue1;
             //cout << "Q1 "<< endl;
 
             pthread_mutex_lock( &mutex1 );
@@ -59,7 +39,7 @@ void* Sched::running(){
 
             
 
-            if(runRR(currentPr)){
+            if(runRR(QTIME, currentPr)){
                 //cout << endl;
                 queue2->insertNode(currentPr);
                 currentPr->state = READY;
@@ -69,7 +49,7 @@ void* Sched::running(){
         }
         
         else if(!queue2->isEmpty()){
-            servingQ = Queue2;
+            servingQ = queue2;
             //cout << "Q2 "<< endl;
 
             head = queue2->getHead();
@@ -86,7 +66,7 @@ void* Sched::running(){
 
             queue2->deleteHead();
             
-            if(runRR(currentPr)){
+            if(runRR(QTIME2, currentPr)){
                 //cout << endl;
                 queue2->insertNode(currentPr);
                 currentPr->state = READY;
@@ -97,7 +77,7 @@ void* Sched::running(){
 
         /*
         else if(!queue3->isEmpty()){
-            servingQ = Queue3;
+            servingQ = 3;
             cout << "Q3 "<< endl;
 
             runFIFO(queue3);
@@ -107,22 +87,15 @@ void* Sched::running(){
         }
         */
 
-        if(head != NULL){
-
-        }
-
-
-       std::this_thread::sleep_for(std::chrono::microseconds(100000));
-       //cout << queue2->size << endl;
+       std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
     return NULL;
-    //pthread_exit(NULL);
 }
 
 void Sched::printProcess(PrBkCtr* process){
     
     cout << "Process ID: " << process->PID << endl;
-    cout << "Process PC: " << process->PCtmp->data << endl;
+    cout << "Process PC: " << process->PC->data << endl;
     if(process->parent)
         cout << "Process Parent: False" << endl;
     else
@@ -154,14 +127,11 @@ void Sched::printMainMem(){
 }
    
 
-bool Sched::runRR(PrBkCtr* PrTable){
+bool Sched::runRR(int burst, PrBkCtr* process){
 
-    List<string>::node* instruction = PrTable->PCtmp;
+    List<string>::node* instruction = process->PC;
     basic_string<char> toParse = instruction->data;
     
-    //print instruction
-    //cout << r->data << endl;
-
     xml_document<> doc;
     doc.parse<0>(&(toParse)[0]);
     xml_node<> * inst = doc.first_node();
@@ -169,21 +139,21 @@ bool Sched::runRR(PrBkCtr* PrTable){
 
     int duration = parseTime(inst);
 
-    //PrTable->state = RUNNING;     //updating state to running
-    //cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+    //process->state = RUNNING;     //updating state to running
+    //cout << "current process: "<< process->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
     
     auto f = inst->first_attribute("pages");
     vector<int> pages;
     if(f != 0){
         string s = f->value();
-        pages = findPages(s);
-        M1->mmu(PrTable, pages);
+        pages = M1->findPages(s);
+        M1->mmu(process, pages);
     }
-    //printPageTable(PrTable);
+    //printPageTable(process);
 
 
-    if((duration - qtime) <= 0){
-        //wait for qtime - duration
+    if((duration - burst) <= 0){
+        //wait for QTIME - duration
         std::this_thread::sleep_for(std::chrono::microseconds(duration));
         
         instruction->data = updateTime(instruction->data, 0);
@@ -191,41 +161,39 @@ bool Sched::runRR(PrBkCtr* PrTable){
         string c = inst->value();
 
         if(c.compare("\"yield\"") == 0){
-            yield(PrTable);
+            yield(process);
             return false;
         }
         else if(c.compare("fork") == 0){
-            fork(PrTable);
+            fork(process, 1);
         }
         else if(c.compare("fork2") == 0){
-            fork2(PrTable);
+            fork(process, 2);
         }
         else if(c.compare("send") == 0){
-            Io::send(inst, PrTable, MB);
-            
+            Io::send(inst, process, MB);
         }
         else if(c.compare("receive") == 0){
-            Io::receive(PrTable, MB);                 
+            Io::receive(process, MB);                 
         }
         else if(c.compare("write") == 0){
-            write(PrTable);
+            Io::write(this, process);
         }
         else if(c.compare("read") == 0){
-            read(PrTable);
+            Io::read(this, process);
         }
         else if(c.compare("io") == 0){
             Io::interruptHandler();
         }
         
-        cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
-        PrTable->PCtmp = instruction->next;     //update PC
+        cout << "current process: "<< process->PID << " of name: " << inst->value() << " has been terminated" << endl;
+        process->PC = instruction->next;     //update PC
 
     }
     else{
-        //wait for qtime
-        std::this_thread::sleep_for(std::chrono::milliseconds(qtime));
-        int timep = duration - qtime;
-        //string tn = to_string(timep);
+        //wait for burst time
+        std::this_thread::sleep_for(std::chrono::milliseconds(burst));
+        int timep = duration - burst;
         instruction->data = updateTime(instruction->data, timep);
         
     }
@@ -255,7 +223,7 @@ int Sched::parseTime(xml_node<> * inst){
 }
 
 
-void Sched::fork(PrBkCtr* w){
+void Sched::fork(PrBkCtr* w, int type){
 
                 //cout << "forking " << w->PID << endl;
                 xml_document<> doc;
@@ -268,7 +236,10 @@ void Sched::fork(PrBkCtr* w){
 
                 doc.parse<0>(&buffer[0]);
                 root_node = doc.first_node("Processes");
-                root_node = root_node->first_node("child");
+                if(type == 1)
+                    root_node = root_node->first_node("child");
+                else
+                    root_node = root_node->first_node("child2");
 
 
                 List<string> instructions;
@@ -308,58 +279,6 @@ void Sched::fork(PrBkCtr* w){
     return;
 }
 
-void Sched::fork2(PrBkCtr* w){
-
-    //cout << "forking " << w->PID << endl;
-    xml_document<> doc;
-    xml_node<> * root_node;
-    ifstream file("process.xml");
-    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-
-    //make sure to zero terminate the buffer
-    buffer.push_back('\0');
-
-    doc.parse<0>(&buffer[0]);
-    root_node = doc.first_node("Processes");
-    root_node = root_node->first_node("child2");
-
-
-    List<string> instructions;
-    xml_document<> tmpPr;
-
-    for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
-        if(inst == 0){
-            //cout << "no node" << endl;
-            continue;
-        }
-
-        xml_node<char>* SInst = tmpPr.clone_node(inst);
-
-        tmpPr.append_node(SInst);
-        string xml_as_string = "";
-        print(std::back_inserter(xml_as_string), tmpPr);
-        //print instruction
-        //std::cout << "-----\n" << xml_as_string << std::endl;
-
-        instructions.insertNode(xml_as_string);
-
-        tmpPr.remove_first_node();
-    }
-
-    //PrBkCtr pcb(instructions.getHead());
-    PrBkCtr* pcb = new PrBkCtr(instructions.getHead());
-    pcb->state = READY;              //change PCB state to READY
-    pcb->parent = w->PID;
-    w->parent = true;
-    w->childs.push_back(pcb);
-    queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
-    
-    //tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
-    MB->mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
-    MB->PrTable.insert({pcb->PID, queue1->tail});
-
-    return;
-}
 
 void Sched::yield(PrBkCtr* w){
 
@@ -368,8 +287,6 @@ void Sched::yield(PrBkCtr* w){
         switch(childProcess->state) {
             case READY:
                 {
-                auto node = MB->PrTable.find(childProcess->PID);
-
                 yield(childProcess); //call recursively 
 
                 //removeNode(node);
@@ -389,7 +306,7 @@ void Sched::yield(PrBkCtr* w){
         w->childs.pop_back();
     }
     
-    cout << "process " << w->PID << " has been terminated from " << servingQ << endl;
+    cout << "process " << w->PID << " has been terminated " << endl;
     w->state = TERMINANTED;                         //updating state to terminated
     M1->releaseFrames(w->pgTbl);
     
@@ -415,88 +332,6 @@ DoublyList<PrBkCtr*>::node* Sched::findProcessNode(PrBkCtr* process){
         return i;
     }
 }
-
-vector<int> Sched::findPages(string s){
-
-    vector<int> pages;
-
-    stringstream ss;
-
-    ss << s;
-
-    string temp;
-
-    int page;
-
-    while(!ss.eof()){
-
-        ss >> temp;
-        if(stringstream(temp) >> page){
-            pages.push_back(page);
-        } 
-        temp = "";
-    }
-    return pages;
-}
-
-
-
-
-
-void Sched::write(PrBkCtr* pr){
-
-    //writer
-    wait(pr->rw_mutex, pr);
-
-    //writing
-    signal(pr->rw_mutex, pr);
-}
-
-void Sched::read(PrBkCtr* pr){
-    
-    //reader
-    wait(pr->mutex, pr);
-    pr->read_count++;
-    if(pr->read_count == 1)
-        wait(pr->rw_mutex, pr);
-    signal(pr->mutex, pr);
-
-    //reading
-
-    wait(pr->mutex, pr);
-    pr->read_count--;
-    if(pr->read_count == 0)
-        signal(pr->rw_mutex, pr);
-    signal(pr->mutex, pr);
-}
-
-void Sched::wait(semaphore *S, PrBkCtr* process){
-    S->value--;
-    if(S->value < 0){
-        S->processes.insertNode(process);
-        if(servingQ == Queue1)
-            queue1->deleteHead();
-        
-        else if (servingQ == Queue2)
-            queue2->deleteHead();
-        else
-            queue3->deleteHead();
-
-        //block
-        process->state = WAITING;
-    }
-}
-
-void Sched::signal(semaphore *S, PrBkCtr* process){
-    S->value++;
-    if(S->value <= 0){
-        //wakeup
-        S->processes.getHead()->data->state = READY;
-        S->processes.deleteHead();
-        queue1->insertNode(process);
-    }
-}
-
 
 bool Sched::checkChilds(PrBkCtr* w){
     if(w->childs.size() > 0){

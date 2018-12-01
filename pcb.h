@@ -57,7 +57,7 @@ class PrBkCtr{
         bool parent;
         int queue;                     
         short int PTLR;                             //Page Table Length Register
-        List<std::string>::node* PCtmp;             //Program Counter
+        List<std::string>::node* PC;             //Program Counter
         unsigned int priority;                      // priorities, scheduling queue pointers
         vector<PrBkCtr*> childs;
         pageTable* pgTbl;                           //page table pointer

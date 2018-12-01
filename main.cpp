@@ -8,18 +8,16 @@
 #include <thread>
 #include <pthread.h> 
 #include <queue>
+#include <sstream> 
 
 
 #define numFrames 72 //256
 #define sizeOfPageTable 12
 #define maxNumPages 9
-#define qtime 20
+#define QTIME 20
+#define QTIME2 40
 
 #include "rapidxml.hpp"
-
-
-#include "timer.h"
-#include "timer.cpp"
 
 #include "linkedlist.h"
 
@@ -33,13 +31,13 @@
 
 #include "ipc.h"
 
-#include "io.h"
-#include "io.cpp"
+
 
 #include "scheduler.h"
 #include "scheduler.cpp"
 
-
+#include "io.h"
+#include "io.cpp"
 
 #include "log.h"
 
@@ -109,11 +107,6 @@ struct arg_struct{
 };
 
 
-void PrintPrTable(PrBkCtr* process){
-
-
-}
-
 void* PrintUI(void* arguments){
     
     struct arg_struct *args = (struct arg_struct *)arguments;
@@ -167,7 +160,7 @@ int main(){
 
     mem M1(numPr);
 
-    M1.loadApps();
+    M1.linker();
  
 
     DoublyList<PrBkCtr*>* queue1 = new DoublyList<PrBkCtr*>();
@@ -203,7 +196,13 @@ int main(){
         exit(-1);
     }
 
-    //S1.running();
+    rc = pthread_create(&threadId[1], NULL, (THREADFUNCPTR) &Sched::running, S1);
+
+    if (rc) {
+        cout << "Error:unable to create thread," << rc << endl;
+        exit(-1);
+    }
+
 
     struct arg_struct args;
     args.queue1 = queue1;
@@ -220,7 +219,7 @@ int main(){
     }
 
     pthread_join(threadId[0], NULL);
-    //pthread_join(threadId[1], NULL);
+    pthread_join(threadId[1], NULL);
     pthread_join(threadId[2], NULL);
     //();
     
