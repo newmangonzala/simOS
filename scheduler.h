@@ -119,12 +119,8 @@ class Sched{
     vector<int> findPages(string);
     string updateTime(string, int);
     
-    //memory management
-    void mmu(PrBkCtr*, vector<int>);
-    bool lookUpTLB(int, int);
-    bool loopUpPageTlb(PrBkCtr*, int);
-    void pageSwapper(PrBkCtr* , int);
-    void resetEntryTLB(vector<int>);
+    ////memory management
+
 
     void printProcess(PrBkCtr*);
     void printMainMem();

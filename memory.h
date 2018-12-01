@@ -15,24 +15,6 @@ using namespace std;
 
 class PrBkCtr;
 
-class pageTable{
-
-    public: 
-
-    vector<int*> entries;
-    //int** entries = new int*[256];
-    
-    pageTable(){
-        for(int i = 0 ; i < sizeOfPageTable; i++){
-            int * tmp = new int[2];
-            tmp[0] = 0; //initialize valid bits to 0
-            entries.push_back(tmp);
-        }
-
-    }
-    
-};
-
 class mem{
 
     private:
@@ -64,7 +46,11 @@ class mem{
 
     short int currentFrameIndex;
 
-    void mmu();
+    void mmu(PrBkCtr*, vector<int>);
+    bool lookUpTLB(int, int);
+    bool loopUpPageTlb(PrBkCtr*, int);
+    void pageSwapper(PrBkCtr* , int);
+    void resetEntryTLB(vector<int>);
     void releaseFrames(pageTable*);
 
     //tuple<int, PrBkCtr*> processTable;

@@ -177,7 +177,7 @@ bool Sched::runRR(PrBkCtr* PrTable){
     if(f != 0){
         string s = f->value();
         pages = findPages(s);
-        mmu(PrTable, pages);
+        M1->mmu(PrTable, pages);
     }
     //printPageTable(PrTable);
 
@@ -217,7 +217,7 @@ bool Sched::runRR(PrBkCtr* PrTable){
             Io::interruptHandler();
         }
         
-        //cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
+        cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
         PrTable->PCtmp = instruction->next;     //update PC
 
     }
@@ -229,7 +229,7 @@ bool Sched::runRR(PrBkCtr* PrTable){
         instruction->data = updateTime(instruction->data, timep);
         
     }
-    resetEntryTLB(pages);
+    M1->resetEntryTLB(pages);
     return true;
 }
 
@@ -389,7 +389,7 @@ void Sched::yield(PrBkCtr* w){
         w->childs.pop_back();
     }
     
-    //cout << "process " << w->PID << " has been terminated from " << servingQ << endl;
+    cout << "process " << w->PID << " has been terminated from " << servingQ << endl;
     w->state = TERMINANTED;                         //updating state to terminated
     M1->releaseFrames(w->pgTbl);
     
@@ -439,101 +439,9 @@ vector<int> Sched::findPages(string s){
     return pages;
 }
 
-void Sched::mmu(PrBkCtr* w, vector<int> pages){
-
-    for(int i = 0; i < pages.size(); i++){
-                
-        //FIX check for segmentation fault here
 
 
-        //cout << "Process id " << w->PID << " page: " << pages[i] << " bit: " << w->pgTbl->entries[pages[i]][0] << endl;
 
-        if(!lookUpTLB(w->PID, pages[i])){ //Page is not in TLB
-            if(loopUpPageTlb(w, pages[i])){
-                auto frame = w->pgTbl->entries[pages[i]][1];    //get location of page in Mmem; get frame
-                if(!M1->mainMem[frame][0]){
-                    M1->mainMem[frame][0] = 1;                //change second chance bit to 1
-                }
-            }
-            else{
-                pageSwapper(w, pages[i]);
-            }
-        }
-    }
-
-    return;
-}
-
-bool Sched::lookUpTLB(int PID, int page){
-
-    ///TLB[entry][Valid bit, Process ID, Frame number]
-    if(M1->TLB[page][0] && (M1->TLB[page][1] == PID)){ //page is in TLB
-        return true; 
-    }
-    else
-        return false;
-}
-bool Sched::loopUpPageTlb(PrBkCtr* process, int page){
-    if(process->pgTbl->entries[page][0]) //valid bit is 1; meaning is in memory
-        return true;
-    else
-        return false;
-}
-
-void Sched::pageSwapper(PrBkCtr* process, int page){
-    if(M1->freeFrames.size() > 0){
-        
-        auto freeFrame = M1->freeFrames.front();
-        M1->freeFrames.pop();                               //pop free frame
-        process->pgTbl->entries[page][1] = freeFrame;         //map frame to page in page table
-        
-        M1->mainMem[freeFrame][0] = 1;                //change second chance bit to 1
-        M1->mainMem[freeFrame][1] = process->PID;           //store process id into frame, just for reference
-        M1->mainMem[freeFrame][2] = page;
-
-        //frametable
-        M1->frameTable[freeFrame].push_back(process);
-
-        //TLB
-        M1->TLB[page][0] = 1;
-        M1->TLB[page][1] = process->PID; 
-        M1->TLB[page][2] = page;
-        
-    }
-    else{
-        // replace frames because there are not free frames
-        while(M1->mainMem[M1->currentFrameIndex][0]){                           //find frame with second chance bit 0
-            M1->mainMem[M1->currentFrameIndex][0] = 0;                //change second chance bit to 0
-            M1->currentFrameIndex = M1->currentFrameIndex++ % numFrames;
-            continue; 
-            
-        }
-
-        //update page tables of process store in frame
-        PrBkCtr* tmp;
-        for(int i = 0; i < M1->frameTable[M1->currentFrameIndex].size(); i++){
-            tmp = M1->frameTable[M1->currentFrameIndex].back();
-            M1->frameTable[M1->currentFrameIndex].pop_back();
-            M1->releaseFrames(tmp->pgTbl);
-        }
-        
-        M1->mainMem[M1->currentFrameIndex][0] = 1;                  //second chance bit set
-        M1->mainMem[M1->currentFrameIndex][1] = process->PID;                    //replace page in current frame
-        M1->mainMem[M1->currentFrameIndex][2] = page; 
-        //no need to set second chance to 0 since it was zero
-        //update table FIX ME
-        process->pgTbl->entries[page][1] = M1->currentFrameIndex;         //map frame to page in page table
-        
-    }
-    process->pgTbl->entries[page][0] = 1;                 //change valid bit to 1, meaning is now in Mmem
-    M1->currentFrameIndex = M1->currentFrameIndex++ % numFrames;        //Increase index of mem
-}
-
-void Sched::resetEntryTLB(vector<int> pages){
-    for(int i=0; i < pages.size(); i++){
-        M1->TLB[i][0] = 0;
-    }
-}
 
 void Sched::write(PrBkCtr* pr){
 

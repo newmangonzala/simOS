@@ -4,8 +4,28 @@
 #include <string>
 #include <queue>
 
+
+
 //PCB states
 enum STATE{NEW , READY , RUNNING , WAITING , TERMINANTED};
+
+class pageTable{
+
+    public: 
+
+    vector<int*> entries;
+    //int** entries = new int*[256];
+    
+    pageTable(){
+        for(int i = 0 ; i < sizeOfPageTable; i++){
+            int * tmp = new int[2];
+            tmp[0] = 0; //initialize valid bits to 0
+            entries.push_back(tmp);
+        }
+
+    }
+    
+};
 
 class PrBkCtr;
 

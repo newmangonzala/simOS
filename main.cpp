@@ -17,16 +17,19 @@
 
 #include "rapidxml.hpp"
 
+
 #include "timer.h"
 #include "timer.cpp"
 
 #include "linkedlist.h"
 
+#include "pcb.h"
+#include "pcb.cpp"
+
 #include "memory.h"
 #include "memory.cpp"
 
-#include "pcb.h"
-#include "pcb.cpp"
+
 
 #include "ipc.h"
 

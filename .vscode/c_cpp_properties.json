@@ -3,7 +3,9 @@
         {
             "name": "posix",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/**/xmlPaser/**"
+
                 
             ],
             "defines": [
