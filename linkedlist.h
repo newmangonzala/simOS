@@ -128,6 +128,7 @@ class DoublyList: public List<type> {
 		DoublyList(){
 			head = NULL;
 			tail = NULL;
+			size = 0;
 		}
 	
 		struct node{
@@ -137,6 +138,8 @@ class DoublyList: public List<type> {
 		};
 		node *head; 	//head node = current node running
 		node *tail; 	//tail->next always point to null
+
+		int size;
         
 		void insertNode(type);  //insert Node before the the tail
 		void deleteNode(node*);  //insert Node before the the tail
@@ -181,6 +184,7 @@ void DoublyList<type>::insertNode(type dat){
 		nNode->prev = tail;
 		tail = nNode;
 	}
+	size++;
 	return;
 }
 template <class type>
@@ -203,6 +207,7 @@ void DoublyList<type>::deleteHead(){
 			head->prev = NULL;
 		delete ptr;
 	}
+	size--;
 }
 
 template <class type>
@@ -223,6 +228,7 @@ void DoublyList<type>::popHead(){
 		if(head != NULL)
 			head->prev = NULL;
 	}
+	size--;
 }
 
 template <class type>
@@ -235,11 +241,14 @@ void DoublyList<type>::deleteNode(node* tmpNode){
 	else if(tmpNode->next == NULL){
 		tmpNode->prev->next = NULL;
 		delete tmpNode;
+		size--;
 	}
 	else{
 		tmpNode->prev->next = tmpNode->next;	
 		delete tmpNode;
+		size--;
 	}
+	
 }
 
 /*

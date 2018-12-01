@@ -1,10 +1,11 @@
 #include "scheduler.h"
 #include <thread> 
 
-Sched::Sched(DoublyList<PrBkCtr*>& Q1, DoublyList<PrBkCtr*>& Q2, DoublyList<PrBkCtr*>& Q3, mem& A, ipc& MailB){ 
-    queue1 = &Q1;
-    queue2 = &Q2;
-    queue3 = &Q3;
+
+Sched::Sched(DoublyList<PrBkCtr*>* Q1, DoublyList<PrBkCtr*>* Q2, DoublyList<PrBkCtr*>* Q3, mem& A, ipc& MailB){ 
+    queue1 = Q1;
+    queue2 = Q2;
+    queue3 = Q3;
     M1 = &A;
     MB = &MailB;
 }
@@ -29,8 +30,11 @@ void Sched::updateQ(DoublyList<PrBkCtr *>* queue){
     return;
 }
 
-void Sched::running(){
+void* Sched::running(){
     //run until Ready queues are empty
+
+    DoublyList<PrBkCtr*>::node* head;
+    
 
     while(!queue1->isEmpty() || !queue2->isEmpty() || !queue3->isEmpty()){
         
@@ -38,14 +42,25 @@ void Sched::running(){
             servingQ = Queue1;
             //cout << "Q1 "<< endl;
 
-            DoublyList<PrBkCtr*>::node* head = queue1->getHead();
+            pthread_mutex_lock( &mutex1 );
+            head = queue1->getHead();
             queue1->popHead();
+            pthread_mutex_unlock( &mutex1 );
+
+            //cout << "Queue1" << endl;
+            
+            //ClearScreen();
+            //printMainMem();
+            //printProcess(head->data);
+
             
             PrBkCtr* currentPr = head->data;
             currentPr->state = RUNNING;     //updating state to running
 
+            
+
             if(runRR(currentPr)){
-                cout << endl;
+                //cout << endl;
                 queue2->insertNode(currentPr);
                 currentPr->state = READY;
                 MB->PrTable.insert({currentPr->PID, queue2->tail});
@@ -57,15 +72,22 @@ void Sched::running(){
             servingQ = Queue2;
             //cout << "Q2 "<< endl;
 
-            DoublyList<PrBkCtr*>::node* head = queue2->getHead();
+            head = queue2->getHead();
 
-            queue2->popHead();
+            //cout << "Queue2" << endl;
             
+            //ClearScreen();
+            //printMainMem();
+            //printProcess(head->data);
+
+
             PrBkCtr* currentPr = head->data;
             currentPr->state = RUNNING;     //updating state to running
 
+            queue2->deleteHead();
+            
             if(runRR(currentPr)){
-                cout << endl;
+                //cout << endl;
                 queue2->insertNode(currentPr);
                 currentPr->state = READY;
                 MB->PrTable.insert({currentPr->PID, queue2->tail});
@@ -84,9 +106,53 @@ void Sched::running(){
             updateQ(queue3);
         }
         */
+
+        if(head != NULL){
+
+        }
+
+
+       std::this_thread::sleep_for(std::chrono::microseconds(100000));
+       //cout << queue2->size << endl;
     }
-    return;
+    return NULL;
+    //pthread_exit(NULL);
 }
+
+void Sched::printProcess(PrBkCtr* process){
+    
+    cout << "Process ID: " << process->PID << endl;
+    cout << "Process PC: " << process->PCtmp->data << endl;
+    if(process->parent)
+        cout << "Process Parent: False" << endl;
+    else
+        cout << "Process Parent: True" << endl;
+
+    cout << "---Page Table---" << endl;
+    cout << "| V Bit | Page# | Frame# |" << endl;
+    
+    for(int i=0; i < sizeOfPageTable;i++){
+        cout << setw(5)<< process->pgTbl->entries[i][0]<< setw(8) << i << setw(8) << process->pgTbl->entries[i][1] << endl;
+        
+    }
+
+
+}
+
+void Sched::printMainMem(){
+    cout << setw(30) << "---Main-Mem---" << endl;
+    cout << setw(15) << "__________" << setw(16)<< "__________" << setw(16)<< "__________" << setw(16)<< "__________" << endl;
+    for(int i = 0; i < numFrames; i=i+6){
+        cout << setw(4) << hex << i   + 10 << "| "<< setw(5) << dec << M1->mainMem[i][1]  << ", " << M1->mainMem[i][2]  <<" |";
+        cout << setw(4) << hex << i+1 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+1][1]<< ", " << M1->mainMem[i+1][2]<<" |";
+        cout << setw(4) << hex << i+2 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+2][1]<< ", " << M1->mainMem[i+2][2]<<" |";
+        cout << setw(4) << hex << i+3 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+3][1]<< ", " << M1->mainMem[i+3][2]<<" |";
+        cout << setw(4) << hex << i+4 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+4][1]<< ", " << M1->mainMem[i+4][2]<<" |";
+        cout << setw(4) << hex << i+5 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+5][1]<< ", " << M1->mainMem[i+5][2]<<" |" << endl;
+    }
+    cout << setw(15) << "----------" << setw(16)<< "----------" << setw(16)<< "----------" << setw(16)<< "----------" << endl;
+}
+   
 
 bool Sched::runRR(PrBkCtr* PrTable){
 
@@ -104,14 +170,16 @@ bool Sched::runRR(PrBkCtr* PrTable){
     int duration = parseTime(inst);
 
     //PrTable->state = RUNNING;     //updating state to running
-    cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
+    //cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
     
     auto f = inst->first_attribute("pages");
+    vector<int> pages;
     if(f != 0){
         string s = f->value();
-        vector<int> pages = findPages(s);
+        pages = findPages(s);
         mmu(PrTable, pages);
     }
+    //printPageTable(PrTable);
 
 
     if((duration - qtime) <= 0){
@@ -133,10 +201,11 @@ bool Sched::runRR(PrBkCtr* PrTable){
             fork2(PrTable);
         }
         else if(c.compare("send") == 0){
-            send(inst, PrTable);
+            Io::send(inst, PrTable, MB);
+            
         }
         else if(c.compare("receive") == 0){
-            receive(PrTable);                 
+            Io::receive(PrTable, MB);                 
         }
         else if(c.compare("write") == 0){
             write(PrTable);
@@ -144,8 +213,11 @@ bool Sched::runRR(PrBkCtr* PrTable){
         else if(c.compare("read") == 0){
             read(PrTable);
         }
+        else if(c.compare("io") == 0){
+            Io::interruptHandler();
+        }
         
-        cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
+        //cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
         PrTable->PCtmp = instruction->next;     //update PC
 
     }
@@ -157,64 +229,8 @@ bool Sched::runRR(PrBkCtr* PrTable){
         instruction->data = updateTime(instruction->data, timep);
         
     }
+    resetEntryTLB(pages);
     return true;
-}
-
-void Sched::runFIFO(DoublyList<PrBkCtr *>* queue){
-    DoublyList<PrBkCtr*>::node* head = queue->getHead();
-    PrBkCtr* PrTable = head->data;
-    List<string>::node* instruction = PrTable->PCtmp;
-    basic_string<char> toParse = instruction->data;
-    
-    //print instruction
-    //cout << instruction->data << endl;
-
-    xml_document<> doc;
-    doc.parse<0>(&(toParse)[0]);
-    xml_node<> * inst = doc.first_node();
-
-    int duration = parseTime(inst);
-
-    PrTable->state = RUNNING;     //updating state to running
-    cout << "current process: "<< PrTable->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
-    
-
-    auto f = inst->first_attribute("pages");
-    if(f != 0){
-        string s = f->value();
-        vector<int> pages = findPages(s);
-        mmu(PrTable, pages);
-    }
-  
-    //wait for qtime - duration
-    std::this_thread::sleep_for(std::chrono::microseconds(duration));
-       
-    
-    string c = inst->value();
-
-    if(c.compare("\"yield\"") == 0){
-        yield(PrTable);
-        return;
-    }
-    else if(c.compare("fork") == 0){
-        fork(PrTable);
-    }
-    else if(c.compare("fork2") == 0){
-        fork2(PrTable);
-    }
-    else if(c.compare("send") == 0){
-        send(inst, PrTable);
-    }
-    else if(c.compare("receive") == 0){
-        receive(PrTable);              
-    }
-    
-    cout << "current process: "<< PrTable->PID << " of name: " << inst->value() << " has been terminated" << endl;
-    PrTable->PCtmp = instruction->next;     //update PC
-
-    instruction->data = updateTime(instruction->data, 0);
-        
-
 }
 
 string Sched::updateTime(string instruction, int newTime){
@@ -231,35 +247,6 @@ string Sched::updateTime(string instruction, int newTime){
 
     return instruction;
 }
-
-
-void Sched::send(xml_node<> * inst, PrBkCtr* w){
-    
-    string tmpmail = inst->first_attribute("mailbox")->value();
-    
-    if(tmpmail.compare("child") == 0){
-
-        string messg = inst->first_attribute("message")->value();
-
-        for(int i = w->childs.size() - 1; i >= 0; i--){
-
-            cout << "child of current pr is " << w->childs[i]->PID << endl;
-        
-            auto search = MB->mailboxes.find(w->childs[i]->PID);
-            search->second->insertNode(messg);
-        }
-
-    }
-}
-
-void Sched::receive(PrBkCtr* w){
-    auto search = MB->mailboxes.find(w->PID);
-    
-    for(int i=0; i < search->second->size(); i++)
-        cout << "message received: " << search->second->getHead()->data << endl;
-        search->second->deleteHead();
-}
-
 
 int Sched::parseTime(xml_node<> * inst){
 
@@ -289,7 +276,7 @@ void Sched::fork(PrBkCtr* w){
  
                 for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
                     if(inst == 0){
-                        cout << "no node" << endl;
+                        //cout << "no node" << endl;
                         continue;
                     }
 
@@ -342,7 +329,7 @@ void Sched::fork2(PrBkCtr* w){
 
     for (xml_node<> * inst = root_node->first_node("action"); inst; inst = inst->next_sibling()){
         if(inst == 0){
-            cout << "no node" << endl;
+            //cout << "no node" << endl;
             continue;
         }
 
@@ -376,7 +363,6 @@ void Sched::fork2(PrBkCtr* w){
 
 void Sched::yield(PrBkCtr* w){
 
-
     while(checkChilds(w)){
         PrBkCtr* childProcess = w->childs.back();           //get childs
         switch(childProcess->state) {
@@ -384,42 +370,32 @@ void Sched::yield(PrBkCtr* w){
                 {
                 auto node = MB->PrTable.find(childProcess->PID);
 
-                yield(childProcess);
+                yield(childProcess); //call recursively 
 
                 //removeNode(node);
                 childProcess->state = TERMINANTED;
                 DoublyList<PrBkCtr*>::node* tmp = findProcessNode(childProcess);
 
                 terminatePr(tmp);
-                cout << "- child" << childProcess->PID << " of process " << w->PID << " has been terminated" << endl;
+                //cout << "- child" << childProcess->PID << " of process " << w->PID << " has been terminated" << endl;
                 }
                 break;
             case TERMINANTED:
                 break;
             default:
-                cout << "ERROR with child states" << endl;
+                //cout << "ERROR with child states" << endl;
                 break;
         }
         w->childs.pop_back();
     }
     
-            
+    //cout << "process " << w->PID << " has been terminated from " << servingQ << endl;
     w->state = TERMINANTED;                         //updating state to terminated
-    if(servingQ == Queue1){
-            //queue1->deleteHead();
-            cout << "process " << w->PID << " has been terminated from queue 1" << endl;
-    }
-    else if(servingQ == Queue2){
-            //queue2->deleteHead();
-            cout << "process " << w->PID << " has been terminated from queue 2" << endl;
-    }
-    else{
-        //queue3->deleteHead();
-        cout << "process " << w->PID << " has been terminated from queue 3" << endl;
-    }
+    M1->releaseFrames(w->pgTbl);
     
     return;
 }
+
 
 DoublyList<PrBkCtr*>::node* Sched::findProcessNode(PrBkCtr* process){
 
@@ -467,43 +443,35 @@ void Sched::mmu(PrBkCtr* w, vector<int> pages){
 
     for(int i = 0; i < pages.size(); i++){
                 
-        if(pages[i] > pages.size()){
-            continue; //FIX ME
-        }
+        //FIX check for segmentation fault here
 
-        cout << "Process id " << w->PID << " page: " << pages[i] << " bit: " << w->pgTbl->entries[pages[i]][0] << endl;
 
-        //if(!w->pgTbl->entries[pages[i]][0]){   //valid bit is 0; meaning is not in memory
-            if(lookUpTLB(w->PID, pages[i])){ //Page is in TLB
-                if(loopUpPageTlb(w, pages[i])){
-                    auto frame = w->pgTbl->entries[pages[i]][1];    //get location of page in Mmem; get frame
-                    if(!M1->mainMem[frame][0]){
-                        M1->mainMem[frame][0] = 1;                //change second chance bit to 1
-                    }
-                }
-                else{
-                    pageReplacement(w, pages[i]);
+        //cout << "Process id " << w->PID << " page: " << pages[i] << " bit: " << w->pgTbl->entries[pages[i]][0] << endl;
+
+        if(!lookUpTLB(w->PID, pages[i])){ //Page is not in TLB
+            if(loopUpPageTlb(w, pages[i])){
+                auto frame = w->pgTbl->entries[pages[i]][1];    //get location of page in Mmem; get frame
+                if(!M1->mainMem[frame][0]){
+                    M1->mainMem[frame][0] = 1;                //change second chance bit to 1
                 }
             }
-            //page is not in memory
-            
-        //}
-        //else{   //valid bit is 1 so page is in memory
-        //}
-        
+            else{
+                pageSwapper(w, pages[i]);
+            }
+        }
     }
 
     return;
 }
 
 bool Sched::lookUpTLB(int PID, int page){
-    for(int i =0 ; i < maxNumPages; i++){
-        //TLB[entry][Valid bit, Process ID, Page number]
-        if(M1->TLB[i][0] && (M1->TLB[i][1] == PID) && (M1->TLB[i][2] == page)){ //page is in TLB
-            return true; 
-        }
-    } 
-    return false;
+
+    ///TLB[entry][Valid bit, Process ID, Frame number]
+    if(M1->TLB[page][0] && (M1->TLB[page][1] == PID)){ //page is in TLB
+        return true; 
+    }
+    else
+        return false;
 }
 bool Sched::loopUpPageTlb(PrBkCtr* process, int page){
     if(process->pgTbl->entries[page][0]) //valid bit is 1; meaning is in memory
@@ -512,7 +480,7 @@ bool Sched::loopUpPageTlb(PrBkCtr* process, int page){
         return false;
 }
 
-void Sched::pageReplacement(PrBkCtr* process, int page){
+void Sched::pageSwapper(PrBkCtr* process, int page){
     if(M1->freeFrames.size() > 0){
         
         auto freeFrame = M1->freeFrames.front();
@@ -522,6 +490,14 @@ void Sched::pageReplacement(PrBkCtr* process, int page){
         M1->mainMem[freeFrame][0] = 1;                //change second chance bit to 1
         M1->mainMem[freeFrame][1] = process->PID;           //store process id into frame, just for reference
         M1->mainMem[freeFrame][2] = page;
+
+        //frametable
+        M1->frameTable[freeFrame].push_back(process);
+
+        //TLB
+        M1->TLB[page][0] = 1;
+        M1->TLB[page][1] = process->PID; 
+        M1->TLB[page][2] = page;
         
     }
     else{
@@ -532,16 +508,31 @@ void Sched::pageReplacement(PrBkCtr* process, int page){
             continue; 
             
         }
+
+        //update page tables of process store in frame
+        PrBkCtr* tmp;
+        for(int i = 0; i < M1->frameTable[M1->currentFrameIndex].size(); i++){
+            tmp = M1->frameTable[M1->currentFrameIndex].back();
+            M1->frameTable[M1->currentFrameIndex].pop_back();
+            M1->releaseFrames(tmp->pgTbl);
+        }
+        
         M1->mainMem[M1->currentFrameIndex][0] = 1;                  //second chance bit set
         M1->mainMem[M1->currentFrameIndex][1] = process->PID;                    //replace page in current frame
         M1->mainMem[M1->currentFrameIndex][2] = page; 
         //no need to set second chance to 0 since it was zero
         //update table FIX ME
         process->pgTbl->entries[page][1] = M1->currentFrameIndex;         //map frame to page in page table
-    
+        
     }
     process->pgTbl->entries[page][0] = 1;                 //change valid bit to 1, meaning is now in Mmem
     M1->currentFrameIndex = M1->currentFrameIndex++ % numFrames;        //Increase index of mem
+}
+
+void Sched::resetEntryTLB(vector<int> pages){
+    for(int i=0; i < pages.size(); i++){
+        M1->TLB[i][0] = 0;
+    }
 }
 
 void Sched::write(PrBkCtr* pr){
@@ -550,7 +541,6 @@ void Sched::write(PrBkCtr* pr){
     wait(pr->rw_mutex, pr);
 
     //writing
-
     signal(pr->rw_mutex, pr);
 }
 

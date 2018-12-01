@@ -60,7 +60,9 @@
         "iterator": "cpp",
         "deque": "cpp",
         "queue": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "csignal": "cpp",
+        "iomanip": "cpp"
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
     "C_Cpp.errorSquiggles": "Disabled",

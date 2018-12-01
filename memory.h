@@ -13,8 +13,25 @@
 
 using namespace std;
 
-//2048 MB of memory
-//2048MB = 512mwords
+class PrBkCtr;
+
+class pageTable{
+
+    public: 
+
+    vector<int*> entries;
+    //int** entries = new int*[256];
+    
+    pageTable(){
+        for(int i = 0 ; i < sizeOfPageTable; i++){
+            int * tmp = new int[2];
+            tmp[0] = 0; //initialize valid bits to 0
+            entries.push_back(tmp);
+        }
+
+    }
+    
+};
 
 class mem{
 
@@ -31,7 +48,7 @@ class mem{
     int numProcess;
     void loadApps();     //this is the loader
     void loadPCBs();
-    void loadApp(List<std::string>::node*);
+  
     vector<List<mem::instrucion>> qOfPr;
     vector<List<std::string>> memOfProcesses;
 
@@ -39,13 +56,16 @@ class mem{
 
     
     short int** mainMem = new short int*[numFrames];   //128 pages of 16kb
+    vector<PrBkCtr*> frameTable[numFrames];
     short int** TLB = new short int*[maxNumPages];
+
 
     queue<short int> freeFrames;
 
     short int currentFrameIndex;
 
     void mmu();
+    void releaseFrames(pageTable*);
 
     //tuple<int, PrBkCtr*> processTable;
 
@@ -53,26 +73,6 @@ class mem{
 
 
 
-class pageTable{
 
-    public: 
-
-    vector<int*> entries;
-    //int** entries = new int*[256];
-    
-    pageTable(int priority){
-        for(int i = 0 ; i < priority*2; i++){
-            int * tmp = new int[2];
-            tmp[0] = 0; //initialize valid bits to 0
-            entries.push_back(tmp);
-        }
-
-    }
-    
-
-    
-      
-    
-};
 
 #endif

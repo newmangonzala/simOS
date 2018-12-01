@@ -11,10 +11,12 @@ mem::mem(int numPr){
         freeFrames.push(i);
         //second chance bit , PID, page number
         mainMem[i] = new short int[3];
+        mainMem[i][1] = -1;
     }
     for(int i = 0 ; i < maxNumPages; i++){
-        //Valid bit, Process ID, Page number, Frame number
+        //Valid bit, Process ID, Frame number
         TLB[i] = new short int[4];
+        TLB[i][0] = 0;
     }
     currentFrameIndex = 0;
 
@@ -145,12 +147,16 @@ void mem::loadPCBs(){
     return;
 }
 
-void mem::loadApp(List<std::string>::node* ptr){
 
-
-
-    return;
+void mem::releaseFrames(pageTable* currentProcess){
+    for(int i = 0; i < currentProcess->entries.size(); i++){
+        if(currentProcess->entries[i][0]){
+            freeFrames.push(currentProcess->entries[i][1]);
+            currentProcess->entries[i][0] = 0;
+        }
+    }
 }
+
 
 void mem::
 mmu(){
