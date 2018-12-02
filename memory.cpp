@@ -6,7 +6,7 @@ using namespace rapidxml;
 
 
 mem::mem(int numPr){
-    numProcess = numPr;
+    //numProcess = numPr;
     for(int i = 0 ; i < numFrames; i++){
         freeFrames.push(i);
         //second chance bit , PID, page number
@@ -20,10 +20,110 @@ mem::mem(int numPr){
     }
     currentFrameIndex = 0;
 
+    numProcess = MAXNUMPR;
+
+}
+
+void mem::createHD(){
+      //open file of dummy proccesses 
+    ifstream file("process.xml");
+
+    xml_document<> doc;
+    xml_node<> * root_node;
+
+    vector<char> buffer((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+
+    //make sure to zero terminate the buffer
+    buffer.push_back('\0');
+
+    //parse buffer
+    doc.parse<0>(&buffer[0]);
+
+    //access the root node
+    root_node = doc.first_node("Processes");
+
+
+    xml_document<> tmpPr;
+     
+    instrucion I1; 
+    vector<instrucion> app4;
+
+
+    for(xml_node<> * app = root_node->first_node("app"); app; app = app->next_sibling("app")){
+        
+        List<string> instructions;
+        
+        for (xml_node<> * inst = app->first_node(); inst; inst = inst->next_sibling()){
+            xml_node<char>* SInst = tmpPr.clone_node(inst);
+
+            tmpPr.append_node(SInst);
+            string xml_as_string = "";
+            print(std::back_inserter(xml_as_string), tmpPr);
+            //std::cout << "-----\n" << xml_as_string << std::endl;
+
+            instructions.insertNode(xml_as_string);
+
+            tmpPr.remove_first_node();
+
+        }
+    
+        //load proccess into memory
+        listOfProcesses.push_back(instructions);
+
+    }
+
+    for(xml_node<> * app = root_node->first_node("child"); app; app = app->next_sibling("child")){
+        
+        List<string> instructions;
+        
+        for (xml_node<> * inst = app->first_node(); inst; inst = inst->next_sibling()){
+            xml_node<char>* SInst = tmpPr.clone_node(inst);
+
+            tmpPr.append_node(SInst);
+            string xml_as_string = "";
+            print(std::back_inserter(xml_as_string), tmpPr);
+            //std::cout << "-----\n" << xml_as_string << std::endl;
+
+            instructions.insertNode(xml_as_string);
+
+            tmpPr.remove_first_node();
+
+        }
+    
+        //load proccess into memory
+        listOfProcessesChilds.push_back(instructions);
+    }
+
+    for(xml_node<> * app = root_node->first_node("child2"); app; app = app->next_sibling("child2")){
+        
+        List<string> instructions;
+        
+        for (xml_node<> * inst = app->first_node(); inst; inst = inst->next_sibling()){
+            xml_node<char>* SInst = tmpPr.clone_node(inst);
+
+            tmpPr.append_node(SInst);
+            string xml_as_string = "";
+            print(std::back_inserter(xml_as_string), tmpPr);
+            //std::cout << "-----\n" << xml_as_string << std::endl;
+
+            instructions.insertNode(xml_as_string);
+
+            tmpPr.remove_first_node();
+
+        }
+    
+        //load proccess into memory
+        listOfProcessesChilds2.push_back(instructions);
+    }
+    
+
+    file.close();
+
+    return;
 }
 
 
-//loader
+
 void mem::linker(){
 
     //open file of dummy proccesses 
@@ -53,11 +153,6 @@ void mem::linker(){
 
     xml_node<> * app = root_node->first_node("app");
 
-    //xml_node<> * inst = app->first_node();
-
-    
-    
-
 
     for (int i = 1; i <= numProcess; i++){
 
@@ -79,7 +174,7 @@ void mem::linker(){
         //std::cout << "/////////////////////////////////////////\n"  << std::endl;
 
         //load proccess into memory
-        memOfProcesses.push_back(instructions);
+        //memOfProcesses.push_back(instructions);
 
     
         //if last app then restart

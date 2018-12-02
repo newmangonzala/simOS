@@ -67,10 +67,12 @@ void Io::wait(Sched* S1, semaphore *S, PrBkCtr* process){
     S->value--;
     if(S->value < 0){
         S->processes.insertNode(process);
-        S1->servingQ->deleteHead();
+        //S1->servingQ->deleteHead();
         //block
         process->state = WAITING;
+        
     }
+    
 }
 
 void Io::signal(Sched* S1, semaphore *S, PrBkCtr* process){

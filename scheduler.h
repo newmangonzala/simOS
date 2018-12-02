@@ -86,6 +86,8 @@ class Sched{
     mem* M1;
     ipc* MB; //mailboxes
 
+    int numOfProcess;
+
     void terminatePr(DoublyList<PrBkCtr*>::node*);
 
     //runs the processes in READY
@@ -102,6 +104,8 @@ class Sched{
     DoublyList<PrBkCtr*>::node* findProcessNode(PrBkCtr*);
 
     pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
 
 
 

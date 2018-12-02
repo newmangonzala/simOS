@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version = "1.0" encoding = "UTF-16" standalone = "no" ?>
 <Processes>
 
-    
+<!-->
     <app>
         <action time="00" pages="8 6 8">io</action>
         <action time="10" pages="1 3 2">fork</fork>
@@ -11,6 +11,7 @@
         <action time="70" pages="1 7 3">"calculate"</action>
         <action time="00">"yield"</action>
     </app>
+<!-->
 
     <child>"test"
         <action time="10" pages="5 6 8">"calculatef"</action>
@@ -26,20 +27,20 @@
         <action time="10" pages="1">read</action>
         <action time="00">"yield"</action>
     </child2>
-    
+
 
     <app>
-        <action time="00" pages="1 2">io</action>
+        <action time="70" pages="1 2">io</action>
         <action time="35" pages="3">"calculate"</action>
         <action time="00">"yield"</action>
     </app>
     <app>
-        <action time="00" pages=" 2 3">io</action>
-        <action time="00" pages=" 2 5">io</action>
-        <action time="10" pages=" 1 6 7 ">"output"</action>
+        <action time="00" pages="5 1">io</action>
+        <action time="35" pages="3">"calculate"</action>
+        <action time="35" pages="6">"calculate"</action>
         <action time="00">"yield"</action>
     </app>
-     
+     <!-->
     <app>
         <action time="40" pages="1">"calculate"</action>
         <action time="30" pages="1">"calculate"</action>
@@ -58,6 +59,6 @@
         <action time="0">"yield"</action>
     </app>
 
-
+<!-->
 
 </Processes>

@@ -32,7 +32,9 @@ class mem{
 
   
     vector<List<mem::instrucion>> qOfPr;
-    vector<List<std::string>> memOfProcesses;
+    vector<List<std::string>> listOfProcesses;
+    vector<List<std::string>> listOfProcessesChilds;
+    vector<List<std::string>> listOfProcessesChilds2;
 
 
 
@@ -55,6 +57,9 @@ class mem{
     void releaseFrames(pageTable*);
 
     //tuple<int, PrBkCtr*> processTable;
+
+
+    void createHD();
 
 };
 

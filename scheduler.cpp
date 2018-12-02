@@ -8,16 +8,78 @@ Sched::Sched(DoublyList<PrBkCtr*>* Q1, DoublyList<PrBkCtr*>* Q2, DoublyList<PrBk
     queue3 = Q3;
     M1 = &A;
     MB = &MailB;
+
+    numOfProcess = 0;
 }
 
 void* Sched::running(){
     //run until Ready queues are empty
 
     DoublyList<PrBkCtr*>::node* head;
-    
+    PrBkCtr* currentPr;
 
     while(!queue1->isEmpty() || !queue2->isEmpty() || !queue3->isEmpty()){
-        
+
+
+        pthread_mutex_lock( &mutex1 );
+        if(!queue1->isEmpty()){
+            servingQ = queue1;
+
+            //pthread_mutex_lock( &mutex3 );
+            head = queue1->getHead();
+            currentPr = head->data;
+            queue1->popHead();
+            //pthread_mutex_unlock( &mutex3 );
+
+            currentPr->state = RUNNING;     //updating state to running
+        }
+        else if(!queue2->isEmpty()){
+            servingQ = queue2;
+
+            //pthread_mutex_lock( &mutex3 );
+            head = queue2->getHead();
+            currentPr = head->data;
+            queue2->deleteHead();
+            //pthread_mutex_unlock( &mutex3 );
+
+            currentPr->state = RUNNING;     //updating state to running
+        }
+        pthread_mutex_unlock( &mutex1 );
+
+        if(currentPr->queue == 1){
+            if(runRR(QTIME, currentPr)){
+
+                pthread_mutex_lock( &mutex1 );
+                queue2->insertNode(currentPr);
+                pthread_mutex_unlock( &mutex1 );
+
+                currentPr->state = READY;
+                MB->PrTable.insert({currentPr->PID, queue2->tail});
+                currentPr->queue = 2;
+            }
+        }
+        else if(currentPr->queue == 2){
+            if(runRR(QTIME2, currentPr)){
+
+                pthread_mutex_lock( &mutex1 );
+                queue2->insertNode(currentPr);
+                pthread_mutex_unlock( &mutex1 );
+
+                currentPr->state = READY;
+                MB->PrTable.insert({currentPr->PID, queue2->tail});
+                currentPr->queue = 2;
+            }
+        }
+
+        pthread_mutex_lock( &mutex1 );
+        //ClearScreen();
+        //printMainMem();
+        pthread_mutex_unlock( &mutex1 );
+
+        //printProcess(head->data);
+
+
+        /*
         if(!queue1->isEmpty()){
             servingQ = queue1;
             //cout << "Q1 "<< endl;
@@ -74,7 +136,7 @@ void* Sched::running(){
                 currentPr->queue = 2;
             }
         }
-
+    */
         /*
         else if(!queue3->isEmpty()){
             servingQ = 3;
@@ -160,22 +222,26 @@ bool Sched::runRR(int burst, PrBkCtr* process){
         
         string c = inst->value();
 
-        if(c.compare("\"yield\"") == 0){
+        pthread_mutex_lock( &mutex1 );
+        if(c.compare("\"yield\"") == 0){    
             yield(process);
+            pthread_mutex_unlock( &mutex1 );
             return false;
         }
-        else if(c.compare("fork") == 0){
+        pthread_mutex_unlock( &mutex1 );
+
+        if(c.compare("fork") == 0){
             fork(process, 1);
         }
         else if(c.compare("fork2") == 0){
             fork(process, 2);
-        }
+        }/*
         else if(c.compare("send") == 0){
             Io::send(inst, process, MB);
         }
         else if(c.compare("receive") == 0){
             Io::receive(process, MB);                 
-        }
+        }*/
         else if(c.compare("write") == 0){
             Io::write(this, process);
         }
@@ -204,14 +270,28 @@ bool Sched::runRR(int burst, PrBkCtr* process){
 string Sched::updateTime(string instruction, int newTime){
     
     int i=0;
-    string nt = to_string(newTime);
+    bool flag = true;
+    int first = 0;
+    int second = 0;
+    string nt = "";
+    nt.append(to_string(newTime));
+    nt.append("");
     for(char C : instruction){
         if(C == '\"'){
-            instruction.replace(++i,2,nt);
-            break;
+            if(flag){
+                first = i;
+                first++;
+                flag = false;
+            }
+            else{
+                second = i;
+                second;
+                break;
+            }
         }
         i++;
     }
+    instruction.replace(first, second - first, nt);
 
     return instruction;
 }
@@ -265,7 +345,7 @@ void Sched::fork(PrBkCtr* w, int type){
                 }
 
                 //PrBkCtr pcb(instructions.getHead());
-                PrBkCtr* pcb = new PrBkCtr(instructions.getHead());
+                PrBkCtr* pcb = new PrBkCtr(instructions.getHead(), w->rw_mutex, w->mutex);
                 pcb->state = READY;              //change PCB state to READY
                 pcb->parent = w->PID;
                 w->parent = true;
@@ -289,11 +369,11 @@ void Sched::yield(PrBkCtr* w){
                 {
                 yield(childProcess); //call recursively 
 
-                //removeNode(node);
-                childProcess->state = TERMINANTED;
-                DoublyList<PrBkCtr*>::node* tmp = findProcessNode(childProcess);
+            
+                //DoublyList<PrBkCtr*>::node* tmp = findProcessNode(childProcess);
 
-                terminatePr(tmp);
+                //childProcess->state = TERMINANTED;
+                //terminatePr(tmp);
                 //cout << "- child" << childProcess->PID << " of process " << w->PID << " has been terminated" << endl;
                 }
                 break;
@@ -306,10 +386,15 @@ void Sched::yield(PrBkCtr* w){
         w->childs.pop_back();
     }
     
+    if(w->state == READY){
+        DoublyList<PrBkCtr*>::node* tmp = findProcessNode(w);
+        terminatePr(tmp);
+    }
+
     cout << "process " << w->PID << " has been terminated " << endl;
     w->state = TERMINANTED;                         //updating state to terminated
     M1->releaseFrames(w->pgTbl);
-    
+
     return;
 }
 
@@ -323,7 +408,9 @@ DoublyList<PrBkCtr*>::node* Sched::findProcessNode(PrBkCtr* process){
     }
     else if(process->queue == 2){
         DoublyList<PrBkCtr*>::node* i = queue2->getHead();
-        for(; i->data->PID != process->PID; i = i->next){}
+        for(; i->data->PID != process->PID; i = i->next){
+            cout << i->data->PID << "-";
+        }
         return i;
     }
     else{
@@ -355,3 +442,4 @@ void Sched::terminatePr(DoublyList<PrBkCtr*>::node* prTerm){
         cout << "ERROR prTerm" << endl;
 
 }
+

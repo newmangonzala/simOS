@@ -11,11 +11,16 @@
 #include <sstream> 
 
 
-#define numFrames 72 //256
+#include <cstdlib>
+int rand();
+
+
+#define numFrames 10 //256
 #define sizeOfPageTable 12
 #define maxNumPages 9
 #define QTIME 20
 #define QTIME2 40
+#define MAXNUMPR 100
 
 #include "rapidxml.hpp"
 
@@ -42,10 +47,6 @@
 #include "log.h"
 
 
-#include <cstdlib>
-
-
-
 using namespace std;
 using namespace rapidxml;
 
@@ -58,44 +59,7 @@ typedef void * (*THREADFUNCPTR)(void *);
 
 #include <windows.h>
 
-/*
-void ClearScreen()
-  {
-  HANDLE                     hStdOut;
-  CONSOLE_SCREEN_BUFFER_INFO csbi;
-  DWORD                      count;
-  DWORD                      cellCount;
-  COORD                      homeCoords = { 0, 0 };
 
-  hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
-  if (hStdOut == INVALID_HANDLE_VALUE) return;
-
-  ///* Get the number of cells in the current buffer
-  if (!GetConsoleScreenBufferInfo( hStdOut, &csbi )) return;
-  cellCount = csbi.dwSize.X *csbi.dwSize.Y;
-
-  ///* Fill the entire buffer with spaces 
-  if (!FillConsoleOutputCharacter(
-    hStdOut,
-    (TCHAR) ' ',
-    cellCount,
-    homeCoords,
-    &count
-    )) return;
-
-  ///* Fill the entire buffer with the current colors and attributes
-  if (!FillConsoleOutputAttribute(
-    hStdOut,
-    csbi.wAttributes,
-    cellCount,
-    homeCoords,
-    &count
-    )) return;
-
-  ///* Move the cursor home
-  SetConsoleCursorPosition( hStdOut, homeCoords );
-}
-*/
 
 struct arg_struct{
     DoublyList<PrBkCtr*>* queue1;
@@ -104,6 +68,12 @@ struct arg_struct{
     queue<short int>* freePages;
     short int*** TLB;
     int input;
+    int numList;
+    mem* M1;
+    Sched* S1;
+
+    queue<short int>* waitQ;
+    int* numProcess;
 };
 
 
@@ -140,15 +110,71 @@ void* PrintUI(void* arguments){
 
 }
 
+bool exitSim(int num){
+    
+    if(num == -1)
+        return true;
+    else
+        return false;
+}
+
 void* getUserIput(void* arguments){
     struct arg_struct *args = (struct arg_struct *)arguments;
-    int* frame = &args->input;
+    int* num = &args->input;
 
     while(1){
-        cin >> *frame;
-        if(*frame == 1){
+        cin >> *num;
+        if(exitSim(*num)){
             break;
         }
+        else{
+            //mutex
+            //args->total = args->total + *num;
+            for(int i = 0; i < *num; i++){
+                args->waitQ->push( rand() % args->numList);
+            }
+            *num = 0;
+            //release mutex
+            
+        }
+    }
+}
+
+List<std::string> linker(int seed, mem* M1){
+    List<std::string> process = M1->listOfProcesses.at(seed);
+    return process;
+}
+
+void loader(List<std::string> process, Sched* S1, int* numProcess){
+    PrBkCtr* pcb = new PrBkCtr(process.getHead());
+    (*numProcess)--;
+    pcb->state = READY;              //change PCB state to READY
+    S1->queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+
+    //tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
+    //tmpIPC.PrTable.insert({pcb->PID, S1->queue1->tail});
+}
+
+void* waitingPrToBeAlloc(void* arguments){
+    struct arg_struct *args = (struct arg_struct *)arguments;
+    int seed;
+    List<std::string> process;
+    //(*args->numProcess)--;
+
+    while(!exitSim(args->input)){
+        if(args->numProcess > 0 && args->waitQ->size() > 0){
+            seed = args->waitQ->front();
+            args->waitQ->pop();
+            process = linker(seed, args->M1);
+            loader(process, args->S1, args->numProcess);
+        }
+    }
+}
+
+void* runScheduler(void* arguments){
+    struct arg_struct *args = (struct arg_struct *)arguments;
+    while(!exitSim(args->input)){
+        args->S1->running();
     }
 }
 
@@ -160,21 +186,99 @@ int main(){
 
     mem M1(numPr);
 
-    M1.linker();
- 
+    M1.createHD();
+
+    //queue<List<std::string>> waitToBeAlloc;
 
     DoublyList<PrBkCtr*>* queue1 = new DoublyList<PrBkCtr*>();
     DoublyList<PrBkCtr*>* queue2 = new DoublyList<PrBkCtr*>();
     DoublyList<PrBkCtr*>* queue3 = new DoublyList<PrBkCtr*>();
     ipc tmpIPC;
-
-
-    //Sched S1(queue1, queue2, queue3 ,M1, tmpIPC);
     Sched* S1 = new Sched(queue1, queue2, queue3 ,M1, tmpIPC);
 
+
+    /*
+
+    for(int i=0; i < numPr; i++){
+        if(M1.numProcess-- > 0){
+            waitToBeAlloc.push(M1.listOfProcesses[rand() % M1.listOfProcesses.size() ]);
+            create--;
+        }         
+    }
+    */
+
+
+
+
+    struct arg_struct args;
+    args.queue1 = queue1;
+    args.queue2 = queue2;
+    args.TLB = &M1.TLB;
+    args.freePages = &M1.freeFrames;
+    args.input = 0;
+    args.numList = M1.listOfProcesses.size();
+    args.waitQ = new queue<short int>;
+    args.numProcess = &M1.numProcess;
+    args.M1 = &M1;
+    args.S1 = S1;
+
+    pthread_t threadId[4];    
+    int rc;
+
+    rc = pthread_create(&threadId[0], NULL, getUserIput, (void *)&args);
+    
+    if (rc) {
+        cout << "Error:unable to create thread," << rc << endl;
+        exit(-1);
+    }
+
+    rc = pthread_create(&threadId[1], NULL, waitingPrToBeAlloc, (void *)&args);
+
+    if (rc) {
+        cout << "Error:unable to create thread," << rc << endl;
+        exit(-1);
+    }
+
+    rc = pthread_create(&threadId[2], NULL, runScheduler, (void *)&args);
+    ////rc = pthread_create(&threadId[0], NULL, (THREADFUNCPTR) &Sched::running, S1);
+
+    if (rc) {
+        cout << "Error:unable to create thread," << rc << endl;
+        exit(-1);
+    }
+
+    //rc = pthread_create(&threadId[3], NULL, runScheduler, (void *)&args);
+    
+
+    if (rc) {
+        cout << "Error:unable to create thread," << rc << endl;
+        exit(-1);
+    }
+
+    pthread_join(threadId[0], NULL);
+    pthread_join(threadId[1], NULL);
+    pthread_join(threadId[2], NULL);
+    //pthread_join(threadId[3], NULL);
+
+  
+    //S1->running();
+
+    //M1.linker();
+ 
+
+    //DoublyList<PrBkCtr*>* queue1 = new DoublyList<PrBkCtr*>();
+    //DoublyList<PrBkCtr*>* queue2 = new DoublyList<PrBkCtr*>();
+    //DoublyList<PrBkCtr*>* queue3 = new DoublyList<PrBkCtr*>();
+
+
+    
+
+
+/*
     for(int i = 0; i < M1.memOfProcesses.size(); i++){
 
         PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[i].getHead());
+        M1.numProcess++;
         tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
         
        
@@ -224,7 +328,7 @@ int main(){
     //();
     
     cout << "-!" << endl;
-  
+  */
 
     /*
     log(logINFO) << "foo " << "bar " << "baz";
@@ -239,7 +343,7 @@ int main(){
     */
 
     
-    //system("pause");
+    system("pause");
 }
 
 
