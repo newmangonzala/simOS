@@ -43,6 +43,11 @@ class PrBkCtr{
         //PrBkCtr(List<mem::instrucion>::node*);
         PrBkCtr(List<std::string>::node*);
         PrBkCtr(List<std::string>::node*, semaphore*, semaphore*);
+        ~PrBkCtr(){
+            delete pgTbl;
+            delete rw_mutex;
+            delete mutex;
+        }
     
         struct Registers{                           //CPU registers
             string R0;

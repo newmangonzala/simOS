@@ -239,6 +239,7 @@ void DoublyList<type>::deleteNode(node* tmpNode){
 		deleteHead();
 	}
 	else if(tmpNode->next == NULL){
+		tail = tmpNode->prev;
 		tmpNode->prev->next = NULL;
 		delete tmpNode;
 		size--;

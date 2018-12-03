@@ -40,7 +40,7 @@ class mem{
 
     
     short int** mainMem = new short int*[numFrames];   //128 pages of 16kb
-    vector<PrBkCtr*> frameTable[numFrames];
+    PrBkCtr* frameTable[numFrames];
     short int** TLB = new short int*[maxNumPages];
 
 
@@ -48,13 +48,15 @@ class mem{
 
     short int currentFrameIndex;
 
+
+
     void mmu(PrBkCtr*, vector<int>);
     vector<int> findPages(string);
     bool lookUpTLB(int, int);
     bool loopUpPageTlb(PrBkCtr*, int);
     void pageSwapper(PrBkCtr* , int);
     void resetEntryTLB(vector<int>);
-    void releaseFrames(pageTable*);
+    void releaseFrames(PrBkCtr* , int);
 
     //tuple<int, PrBkCtr*> processTable;
 

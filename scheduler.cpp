@@ -1,6 +1,6 @@
 #include "scheduler.h"
 #include <thread> 
-
+#include <exception>
 
 Sched::Sched(DoublyList<PrBkCtr*>* Q1, DoublyList<PrBkCtr*>* Q2, DoublyList<PrBkCtr*>* Q3, mem& A, ipc& MailB){ 
     queue1 = Q1;
@@ -10,23 +10,26 @@ Sched::Sched(DoublyList<PrBkCtr*>* Q1, DoublyList<PrBkCtr*>* Q2, DoublyList<PrBk
     MB = &MailB;
 
     numOfProcess = 0;
+
+    servingQ = queue1;
 }
 
 void* Sched::running(){
     //run until Ready queues are empty
 
     DoublyList<PrBkCtr*>::node* head;
-    PrBkCtr* currentPr;
+    PrBkCtr* currentPr = NULL;
 
-    while(!queue1->isEmpty() || !queue2->isEmpty() || !queue3->isEmpty()){
+    while((queue1->size > 0 ) || (queue2->size > 0)){
 
 
         pthread_mutex_lock( &mutex1 );
         if(!queue1->isEmpty()){
-            servingQ = queue1;
+            //servingQ = queue1;
 
             //pthread_mutex_lock( &mutex3 );
             head = queue1->getHead();
+            headPr = *head->data;
             currentPr = head->data;
             queue1->popHead();
             //pthread_mutex_unlock( &mutex3 );
@@ -34,10 +37,11 @@ void* Sched::running(){
             currentPr->state = RUNNING;     //updating state to running
         }
         else if(!queue2->isEmpty()){
-            servingQ = queue2;
+            //servingQ = queue2;
 
             //pthread_mutex_lock( &mutex3 );
             head = queue2->getHead();
+            headPr = *head->data;
             currentPr = head->data;
             queue2->deleteHead();
             //pthread_mutex_unlock( &mutex3 );
@@ -45,109 +49,39 @@ void* Sched::running(){
             currentPr->state = RUNNING;     //updating state to running
         }
         pthread_mutex_unlock( &mutex1 );
-
-        if(currentPr->queue == 1){
-            if(runRR(QTIME, currentPr)){
-
-                pthread_mutex_lock( &mutex1 );
-                queue2->insertNode(currentPr);
-                pthread_mutex_unlock( &mutex1 );
-
-                currentPr->state = READY;
-                MB->PrTable.insert({currentPr->PID, queue2->tail});
-                currentPr->queue = 2;
-            }
-        }
-        else if(currentPr->queue == 2){
-            if(runRR(QTIME2, currentPr)){
-
-                pthread_mutex_lock( &mutex1 );
-                queue2->insertNode(currentPr);
-                pthread_mutex_unlock( &mutex1 );
-
-                currentPr->state = READY;
-                MB->PrTable.insert({currentPr->PID, queue2->tail});
-                currentPr->queue = 2;
-            }
-        }
 
         pthread_mutex_lock( &mutex1 );
         //ClearScreen();
-        //printMainMem();
+        printMainMem();
         pthread_mutex_unlock( &mutex1 );
 
-        //printProcess(head->data);
 
-
-        /*
-        if(!queue1->isEmpty()){
-            servingQ = queue1;
-            //cout << "Q1 "<< endl;
-
-            pthread_mutex_lock( &mutex1 );
-            head = queue1->getHead();
-            queue1->popHead();
-            pthread_mutex_unlock( &mutex1 );
-
-            //cout << "Queue1" << endl;
-            
-            //ClearScreen();
-            //printMainMem();
-            //printProcess(head->data);
-
-            
-            PrBkCtr* currentPr = head->data;
-            currentPr->state = RUNNING;     //updating state to running
-
-            
-
+        if(currentPr != NULL &&  currentPr->queue == 1){
             if(runRR(QTIME, currentPr)){
-                //cout << endl;
+
+                pthread_mutex_lock( &mutex1 );
                 queue2->insertNode(currentPr);
+                pthread_mutex_unlock( &mutex1 );
+
                 currentPr->state = READY;
-                MB->PrTable.insert({currentPr->PID, queue2->tail});
+                //MB->PrTable.insert({currentPr->PID, queue2->tail});
                 currentPr->queue = 2;
             }
         }
-        
-        else if(!queue2->isEmpty()){
-            servingQ = queue2;
-            //cout << "Q2 "<< endl;
-
-            head = queue2->getHead();
-
-            //cout << "Queue2" << endl;
-            
-            //ClearScreen();
-            //printMainMem();
-            //printProcess(head->data);
-
-
-            PrBkCtr* currentPr = head->data;
-            currentPr->state = RUNNING;     //updating state to running
-
-            queue2->deleteHead();
-            
+        else if(currentPr != NULL && currentPr->queue == 2){
             if(runRR(QTIME2, currentPr)){
-                //cout << endl;
+
+                pthread_mutex_lock( &mutex1 );
                 queue2->insertNode(currentPr);
+                pthread_mutex_unlock( &mutex1 );
+
                 currentPr->state = READY;
-                MB->PrTable.insert({currentPr->PID, queue2->tail});
+                //MB->PrTable.insert({currentPr->PID, queue2->tail});
                 currentPr->queue = 2;
             }
         }
-    */
-        /*
-        else if(!queue3->isEmpty()){
-            servingQ = 3;
-            cout << "Q3 "<< endl;
 
-            runFIFO(queue3);
 
-            cout << endl;
-            updateQ(queue3);
-        }
-        */
 
        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
@@ -175,15 +109,42 @@ void Sched::printProcess(PrBkCtr* process){
 }
 
 void Sched::printMainMem(){
-    cout << setw(30) << "---Main-Mem---" << endl;
-    cout << setw(15) << "__________" << setw(16)<< "__________" << setw(16)<< "__________" << setw(16)<< "__________" << endl;
-    for(int i = 0; i < numFrames; i=i+6){
-        cout << setw(4) << hex << i   + 10 << "| "<< setw(5) << dec << M1->mainMem[i][1]  << ", " << M1->mainMem[i][2]  <<" |";
-        cout << setw(4) << hex << i+1 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+1][1]<< ", " << M1->mainMem[i+1][2]<<" |";
-        cout << setw(4) << hex << i+2 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+2][1]<< ", " << M1->mainMem[i+2][2]<<" |";
-        cout << setw(4) << hex << i+3 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+3][1]<< ", " << M1->mainMem[i+3][2]<<" |";
-        cout << setw(4) << hex << i+4 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+4][1]<< ", " << M1->mainMem[i+4][2]<<" |";
-        cout << setw(4) << hex << i+5 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+5][1]<< ", " << M1->mainMem[i+5][2]<<" |" << endl;
+
+    cout << headPr.PC->data;
+
+    cout << setw(9) << "---Main-Mem---" << endl;
+    cout << setw(15) << "__________" << setw(23) << "______________" << endl;;
+    
+
+    for(int i = 0; i < numFrames; i++){
+        cout << setw(4) << dec << i    << "| "<< setw(5) << dec << M1->mainMem[i][1]  << ", " << M1->mainMem[i][2]  <<" |";
+        if(i < sizeOfPageTable){
+            cout << setw(8) << dec << i    << "| "<< setw(5) << dec << headPr.pgTbl->entries[i][0]  << ", " << setw(4) << headPr.pgTbl->entries[i][1]  <<" |";
+        }
+        if(i == 0){
+            cout << " PID -> " << headPr.PID;
+        }
+        else if(i == 1){
+            cout << " Queue1 size -> " << queue1->size;
+        }
+        else if(i == 2){
+            cout << " Queue2 size -> " << queue2->size;
+        }
+        else if(i == 3){
+            cout <<  " num of free pages " << M1->freeFrames.size();
+        }
+        else if(i == 4){
+            cout << " num " << M1->numProcess;
+        }
+        else if(i == 5){
+            
+        }
+        cout << endl;
+        //cout << setw(4) << hex << i+1 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+1][1]<< ", " << M1->mainMem[i+1][2]<<" |";
+        //cout << setw(4) << hex << i+2 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+2][1]<< ", " << M1->mainMem[i+2][2]<<" |";
+        //cout << setw(4) << hex << i+3 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+3][1]<< ", " << M1->mainMem[i+3][2]<<" |";
+        //cout << setw(4) << hex << i+4 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+4][1]<< ", " << M1->mainMem[i+4][2]<<" |";
+        //cout << setw(4) << hex << i+5 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+5][1]<< ", " << M1->mainMem[i+5][2]<<" |" << endl;
     }
     cout << setw(15) << "----------" << setw(16)<< "----------" << setw(16)<< "----------" << setw(16)<< "----------" << endl;
 }
@@ -191,9 +152,10 @@ void Sched::printMainMem(){
 
 bool Sched::runRR(int burst, PrBkCtr* process){
 
+
     List<string>::node* instruction = process->PC;
     basic_string<char> toParse = instruction->data;
-    
+
     xml_document<> doc;
     doc.parse<0>(&(toParse)[0]);
     xml_node<> * inst = doc.first_node();
@@ -217,14 +179,24 @@ bool Sched::runRR(int burst, PrBkCtr* process){
     if((duration - burst) <= 0){
         //wait for QTIME - duration
         std::this_thread::sleep_for(std::chrono::microseconds(duration));
+
+        //try{
+            instruction->data = updateTime(instruction->data, 0);
+            //throw instruction->data;
+        //}
+        //catch(exception& e){
+        //    cout << "exception " << e.what() << endl;
+        //    system("pause");
+        //}
         
-        instruction->data = updateTime(instruction->data, 0);
+        
         
         string c = inst->value();
 
         pthread_mutex_lock( &mutex1 );
         if(c.compare("\"yield\"") == 0){    
             yield(process);
+            (M1->numProcess)++;
             pthread_mutex_unlock( &mutex1 );
             return false;
         }
@@ -252,7 +224,7 @@ bool Sched::runRR(int burst, PrBkCtr* process){
             Io::interruptHandler();
         }
         
-        cout << "current process: "<< process->PID << " of name: " << inst->value() << " has been terminated" << endl;
+        //cout << "current process: "<< process->PID << " of name: " << inst->value() << " has been terminated" << endl;
         process->PC = instruction->next;     //update PC
 
     }
@@ -263,7 +235,7 @@ bool Sched::runRR(int burst, PrBkCtr* process){
         instruction->data = updateTime(instruction->data, timep);
         
     }
-    M1->resetEntryTLB(pages);
+    //M1->resetEntryTLB(pages);
     return true;
 }
 
@@ -291,6 +263,7 @@ string Sched::updateTime(string instruction, int newTime){
         }
         i++;
     }
+
     instruction.replace(first, second - first, nt);
 
     return instruction;
@@ -350,7 +323,10 @@ void Sched::fork(PrBkCtr* w, int type){
                 pcb->parent = w->PID;
                 w->parent = true;
                 w->childs.push_back(pcb);
+
+                pthread_mutex_lock( &mutex1 );
                 queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
+                pthread_mutex_unlock( &mutex1 );
                 
                 //tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
                 MB->mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
@@ -365,6 +341,7 @@ void Sched::yield(PrBkCtr* w){
     while(checkChilds(w)){
         PrBkCtr* childProcess = w->childs.back();           //get childs
         switch(childProcess->state) {
+            //case
             case READY:
                 {
                 yield(childProcess); //call recursively 
@@ -378,6 +355,10 @@ void Sched::yield(PrBkCtr* w){
                 }
                 break;
             case TERMINANTED:
+
+                M1->frameTable[(short int ) childProcess->PID] = NULL;
+                //delete childProcess;
+
                 break;
             default:
                 //cout << "ERROR with child states" << endl;
@@ -391,9 +372,16 @@ void Sched::yield(PrBkCtr* w){
         terminatePr(tmp);
     }
 
+
+
     cout << "process " << w->PID << " has been terminated " << endl;
     w->state = TERMINANTED;                         //updating state to terminated
-    M1->releaseFrames(w->pgTbl);
+    for(int i =0 ; i < sizeOfPageTable; i++){
+        if(w->pgTbl->entries[i][0]){
+            M1->releaseFrames(w, i);
+        }
+    }
+    
 
     return;
 }
@@ -409,7 +397,7 @@ DoublyList<PrBkCtr*>::node* Sched::findProcessNode(PrBkCtr* process){
     else if(process->queue == 2){
         DoublyList<PrBkCtr*>::node* i = queue2->getHead();
         for(; i->data->PID != process->PID; i = i->next){
-            cout << i->data->PID << "-";
+            //cout << i->data->PID << "-";
         }
         return i;
     }

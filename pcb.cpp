@@ -29,6 +29,8 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst){
     pgTbl =  new pageTable();
     for(int i=0; i < sizeOfPageTable; i++){
         pgTbl->entries[i][1] = -1;
+        pgTbl->entries[i][0] = 0;
+
     }
 
     rw_mutex = new semaphore;

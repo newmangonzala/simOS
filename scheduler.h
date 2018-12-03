@@ -85,6 +85,7 @@ class Sched{
 
     mem* M1;
     ipc* MB; //mailboxes
+    PrBkCtr headPr;
 
     int numOfProcess;
 

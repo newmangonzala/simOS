@@ -15,7 +15,7 @@
 int rand();
 
 
-#define numFrames 10 //256
+#define numFrames 12 //256
 #define sizeOfPageTable 12
 #define maxNumPages 9
 #define QTIME 20
@@ -174,8 +174,10 @@ void* waitingPrToBeAlloc(void* arguments){
 void* runScheduler(void* arguments){
     struct arg_struct *args = (struct arg_struct *)arguments;
     while(!exitSim(args->input)){
+        
         args->S1->running();
     }
+
 }
 
 int main(){

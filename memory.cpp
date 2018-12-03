@@ -195,13 +195,22 @@ void mem::linker(){
 
 
 
-void mem::releaseFrames(pageTable* currentProcess){
-    for(int i = 0; i < currentProcess->entries.size(); i++){
-        if(currentProcess->entries[i][0]){
-            freeFrames.push(currentProcess->entries[i][1]);
-            currentProcess->entries[i][0] = 0;
-        }
+void mem::releaseFrames(PrBkCtr* w, int page){
+    pageTable* currentProcess = w->pgTbl;
+
+    cout <<  page<< " page to be replaced from PID " << w->PID << endl; 
+
+
+    int j = currentProcess->entries[page][1];
+    if(j != -1){
+        freeFrames.push(j);
+        mainMem[j][1] = -1;
     }
+
+    currentProcess->entries[page][0] = 0;
+
+    frameTable[j] = NULL;
+
 }
 
 
@@ -214,7 +223,8 @@ void mem::mmu(PrBkCtr* process, vector<int> pages){
 
         //cout << "Process id " << process->PID << " page: " << pages[i] << " bit: " << process->pgTbl->entries[pages[i]][0] << endl;
 
-        if(!lookUpTLB(process->PID, pages[i])){ //Page is not in TLB
+        //if(!lookUpTLB(process->PID, pages[i])){ //Page is not in TLB
+        if(true){ //Page is not in TLB
             if(loopUpPageTlb(process, pages[i])){
                 auto frame = process->pgTbl->entries[pages[i]][1];    //get location of page in Mmem; get frame
                 if(!mainMem[frame][0]){
@@ -225,6 +235,8 @@ void mem::mmu(PrBkCtr* process, vector<int> pages){
                 pageSwapper(process, pages[i]);
             }
         }
+        
+        //cout << "p " << pages[i] << endl;
     }
 
     return;
@@ -269,10 +281,17 @@ bool mem::loopUpPageTlb(PrBkCtr* process, int page){
         return false;
 }
 
+
+
 void mem::pageSwapper(PrBkCtr* process, int page){
+
+    cout << "free frames : " << freeFrames.size() << " front "<< freeFrames.front() << endl;
+
     if(freeFrames.size() > 0){
-        
-        auto freeFrame = freeFrames.front();
+
+ 
+         
+        short int freeFrame = freeFrames.front();
         freeFrames.pop();                               //pop free frame
         process->pgTbl->entries[page][1] = freeFrame;         //map frame to page in page table
         
@@ -281,44 +300,49 @@ void mem::pageSwapper(PrBkCtr* process, int page){
         mainMem[freeFrame][2] = page;
 
         //frametable
-        frameTable[freeFrame].push_back(process);
+        frameTable[freeFrame] = process;
 
         //TLB
+        /*
         TLB[page][0] = 1;
         TLB[page][1] = process->PID; 
         TLB[page][2] = page;
+        */
         
     }
     else{
         // replace frames because there are not free frames
         while(mainMem[currentFrameIndex][0]){                           //find frame with second chance bit 0
             mainMem[currentFrameIndex][0] = 0;                //change second chance bit to 0
-            currentFrameIndex = currentFrameIndex++ % numFrames;
+            currentFrameIndex = (currentFrameIndex + 1) % numFrames;
             continue; 
             
         }
 
         //update page tables of process store in frame
         PrBkCtr* tmp;
-        for(int i = 0; i < frameTable[currentFrameIndex].size(); i++){
-            tmp = frameTable[currentFrameIndex].back();
-            frameTable[currentFrameIndex].pop_back();
-            releaseFrames(tmp->pgTbl);
-        }
+        tmp = frameTable[currentFrameIndex];
+
+        if(tmp != NULL)
+            releaseFrames(tmp, mainMem[currentFrameIndex][2]);
+
         
         mainMem[currentFrameIndex][0] = 1;                  //second chance bit set
         mainMem[currentFrameIndex][1] = process->PID;                    //replace page in current frame
-        mainMem[currentFrameIndex][2] = page; 
+        mainMem[currentFrameIndex][2] = page;
+        frameTable[currentFrameIndex] = process;
+        freeFrames.pop();
         //no need to set second chance to 0 since it was zero
         //update table FIX ME
         process->pgTbl->entries[page][1] = currentFrameIndex;         //map frame to page in page table
         
     }
     process->pgTbl->entries[page][0] = 1;                 //change valid bit to 1, meaning is now in Mmem
-    currentFrameIndex = currentFrameIndex++ % numFrames;        //Increase index of mem
+    currentFrameIndex = (currentFrameIndex + 1) % numFrames;        //Increase index of mem
 }
 
 void mem::resetEntryTLB(vector<int> pages){
+
     for(int i=0; i < pages.size(); i++){
         TLB[i][0] = 0;
     }
