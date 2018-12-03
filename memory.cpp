@@ -198,7 +198,7 @@ void mem::linker(){
 void mem::releaseFrames(PrBkCtr* w, int page){
     pageTable* currentProcess = w->pgTbl;
 
-    cout <<  page<< " page to be replaced from PID " << w->PID << endl; 
+    //cout <<  page<< " page to be replaced from PID " << w->PID << endl; 
 
 
     int j = currentProcess->entries[page][1];
@@ -285,7 +285,7 @@ bool mem::loopUpPageTlb(PrBkCtr* process, int page){
 
 void mem::pageSwapper(PrBkCtr* process, int page){
 
-    cout << "free frames : " << freeFrames.size() << " front "<< freeFrames.front() << endl;
+    //cout << "free frames : " << freeFrames.size() << " front "<< freeFrames.front() << endl;
 
     if(freeFrames.size() > 0){
 

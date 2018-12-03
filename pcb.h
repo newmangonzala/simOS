@@ -69,10 +69,9 @@ class PrBkCtr{
         pageTable* pgTbl;                           //page table pointer
         
         
-        //unsigned int Privalage;                     //Privalage
         
         // For critical section
-        int sharedMem;
+        int* sharedMem;
         semaphore* rw_mutex;
         semaphore* mutex;
         int read_count = 0;

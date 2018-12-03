@@ -25,36 +25,24 @@ void* Sched::running(){
 
         pthread_mutex_lock( &mutex1 );
         if(!queue1->isEmpty()){
-            //servingQ = queue1;
-
-            //pthread_mutex_lock( &mutex3 );
+ 
             head = queue1->getHead();
             headPr = *head->data;
             currentPr = head->data;
             queue1->popHead();
-            //pthread_mutex_unlock( &mutex3 );
 
             currentPr->state = RUNNING;     //updating state to running
         }
         else if(!queue2->isEmpty()){
-            //servingQ = queue2;
 
-            //pthread_mutex_lock( &mutex3 );
             head = queue2->getHead();
             headPr = *head->data;
             currentPr = head->data;
             queue2->deleteHead();
-            //pthread_mutex_unlock( &mutex3 );
 
             currentPr->state = RUNNING;     //updating state to running
         }
         pthread_mutex_unlock( &mutex1 );
-
-        pthread_mutex_lock( &mutex1 );
-        //ClearScreen();
-        printMainMem();
-        pthread_mutex_unlock( &mutex1 );
-
 
         if(currentPr != NULL &&  currentPr->queue == 1){
             if(runRR(QTIME, currentPr)){
@@ -64,7 +52,7 @@ void* Sched::running(){
                 pthread_mutex_unlock( &mutex1 );
 
                 currentPr->state = READY;
-                //MB->PrTable.insert({currentPr->PID, queue2->tail});
+                MB->PrTable.insert({currentPr->PID, queue2->tail});
                 currentPr->queue = 2;
             }
         }
@@ -76,14 +64,17 @@ void* Sched::running(){
                 pthread_mutex_unlock( &mutex1 );
 
                 currentPr->state = READY;
-                //MB->PrTable.insert({currentPr->PID, queue2->tail});
+                MB->PrTable.insert({currentPr->PID, queue2->tail});
                 currentPr->queue = 2;
             }
         }
 
+        pthread_mutex_lock( &mutex1 );
+        ClearScreen();
+        printMainMem();
+        pthread_mutex_unlock( &mutex1 );
 
-
-       std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     return NULL;
 }
@@ -104,49 +95,60 @@ void Sched::printProcess(PrBkCtr* process){
         cout << setw(5)<< process->pgTbl->entries[i][0]<< setw(8) << i << setw(8) << process->pgTbl->entries[i][1] << endl;
         
     }
-
-
 }
 
 void Sched::printMainMem(){
 
-    cout << headPr.PC->data;
-
-    cout << setw(9) << "---Main-Mem---" << endl;
-    cout << setw(15) << "__________" << setw(23) << "______________" << endl;;
+    cout << "   Showing only 240MB\n     of Main Mem.     PCB of Running Process " << endl;
+    cout << setw(17) << "__________" << setw(22) << "____________" << endl;;
     
 
-    for(int i = 0; i < numFrames; i++){
-        cout << setw(4) << dec << i    << "| "<< setw(5) << dec << M1->mainMem[i][1]  << ", " << M1->mainMem[i][2]  <<" |";
+    for(int i = 0; i < 30; i++){
+        cout << setw(4) << " 0x" << dec << i  + 16  << "| "<< setw(5) << dec << M1->mainMem[i][1]  << " | " << M1->mainMem[i][2]  <<" |";
         if(i < sizeOfPageTable){
-            cout << setw(8) << dec << i    << "| "<< setw(5) << dec << headPr.pgTbl->entries[i][0]  << ", " << setw(4) << headPr.pgTbl->entries[i][1]  <<" |";
+            cout << setw(8) << dec << i    << "| "<< dec << headPr.pgTbl->entries[i][0]  << " | " << setw(4) << headPr.pgTbl->entries[i][1]  <<" |";
+        }
+        if(i == sizeOfPageTable){
+            cout << setw(20)<< "------------";
         }
         if(i == 0){
-            cout << " PID -> " << headPr.PID;
+            cout << "   OS using 16MB out of 2048 MB of memory";
         }
         else if(i == 1){
-            cout << " Queue1 size -> " << queue1->size;
+            cout << "   Running Process ID -> " << headPr.PID;
         }
         else if(i == 2){
-            cout << " Queue2 size -> " << queue2->size;
+            cout << "   Round Robin with qtime of 20us - # of Processes on it: " << queue1->size;
         }
         else if(i == 3){
-            cout <<  " num of free pages " << M1->freeFrames.size();
+            cout << "   Round Robin with qtime of 40us - # of Processes on it: " << queue2->size;
         }
         else if(i == 4){
-            cout << " num " << M1->numProcess;
+            cout <<  "   Num. of Free Frames " << M1->freeFrames.size();
         }
         else if(i == 5){
-            
+            cout <<  "   Memory available: " <<  M1->freeFrames.size() * 8 << "MB";
         }
+        else if(i == 6){
+            cout << "   Num. of Processes in Main Mem. " << MAXNUMPR - M1->numProcess;
+        }
+        else if(i == 7){
+            cout << "   Process Running the folling command:";
+        }
+        else if(i == 8){
+            unsigned size = headPr.PC->data.size();
+            string tmp = headPr.PC->data;
+            tmp.resize(size - 2);
+            cout << "   "<< tmp;
+        }
+
         cout << endl;
-        //cout << setw(4) << hex << i+1 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+1][1]<< ", " << M1->mainMem[i+1][2]<<" |";
-        //cout << setw(4) << hex << i+2 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+2][1]<< ", " << M1->mainMem[i+2][2]<<" |";
-        //cout << setw(4) << hex << i+3 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+3][1]<< ", " << M1->mainMem[i+3][2]<<" |";
-        //cout << setw(4) << hex << i+4 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+4][1]<< ", " << M1->mainMem[i+4][2]<<" |";
-        //cout << setw(4) << hex << i+5 + 10 << "| "<< setw(5) << dec << M1->mainMem[i+5][1]<< ", " << M1->mainMem[i+5][2]<<" |" << endl;
     }
-    cout << setw(15) << "----------" << setw(16)<< "----------" << setw(16)<< "----------" << setw(16)<< "----------" << endl;
+    cout << setw(17) << "----------" << endl;
+    cout << "Enter -1 to exit simulation: " << endl;
+
+
+
 }
    
 
@@ -166,6 +168,7 @@ bool Sched::runRR(int burst, PrBkCtr* process){
     //process->state = RUNNING;     //updating state to running
     //cout << "current process: "<< process->PID << " running inst: "  << inst->value() << " and has a current duration of: " << duration << endl;
     
+    pthread_mutex_lock( &mutex1 );
     auto f = inst->first_attribute("pages");
     vector<int> pages;
     if(f != 0){
@@ -173,24 +176,15 @@ bool Sched::runRR(int burst, PrBkCtr* process){
         pages = M1->findPages(s);
         M1->mmu(process, pages);
     }
-    //printPageTable(process);
-
+    pthread_mutex_unlock( &mutex1 );
 
     if((duration - burst) <= 0){
         //wait for QTIME - duration
         std::this_thread::sleep_for(std::chrono::microseconds(duration));
 
-        //try{
-            instruction->data = updateTime(instruction->data, 0);
-            //throw instruction->data;
-        //}
-        //catch(exception& e){
-        //    cout << "exception " << e.what() << endl;
-        //    system("pause");
-        //}
-        
-        
-        
+
+        instruction->data = updateTime(instruction->data, 0);
+
         string c = inst->value();
 
         pthread_mutex_lock( &mutex1 );
@@ -207,13 +201,13 @@ bool Sched::runRR(int burst, PrBkCtr* process){
         }
         else if(c.compare("fork2") == 0){
             fork(process, 2);
-        }/*
+        }
         else if(c.compare("send") == 0){
             Io::send(inst, process, MB);
         }
         else if(c.compare("receive") == 0){
             Io::receive(process, MB);                 
-        }*/
+        }
         else if(c.compare("write") == 0){
             Io::write(this, process);
         }
@@ -321,6 +315,7 @@ void Sched::fork(PrBkCtr* w, int type){
                 PrBkCtr* pcb = new PrBkCtr(instructions.getHead(), w->rw_mutex, w->mutex);
                 pcb->state = READY;              //change PCB state to READY
                 pcb->parent = w->PID;
+                pcb->sharedMem = w->sharedMem;
                 w->parent = true;
                 w->childs.push_back(pcb);
 

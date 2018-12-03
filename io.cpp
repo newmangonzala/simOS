@@ -42,6 +42,10 @@ void Io::write(Sched* S1, PrBkCtr* pr){
     wait(S1, pr->rw_mutex, pr);
 
     //writing
+    int* tmp = new int;
+    *tmp = rand();
+    pr->sharedMem = tmp;
+
     signal(S1, pr->rw_mutex, pr);
 }
 
@@ -55,6 +59,7 @@ void Io::read(Sched* S1, PrBkCtr* pr){
     signal(S1,pr->mutex, pr);
  
     //reading
+    //cout << *pr->sharedMem << endl;
 
     wait(S1, pr->mutex, pr);
     pr->read_count--;

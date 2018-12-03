@@ -15,7 +15,7 @@
 int rand();
 
 
-#define numFrames 12 //256
+#define numFrames 238 //256
 #define sizeOfPageTable 12
 #define maxNumPages 9
 #define QTIME 20
@@ -182,35 +182,33 @@ void* runScheduler(void* arguments){
 
 int main(){
 
-    int numPr;
-    cout << "Please enter numbers of processes to be created" << endl;
-    cin >> numPr;
+    cout << "  Welcome to SimOS - a Operating System Simulation..." << endl;
+    cout << "            __\n";            
+    cout << "          _/ \'>\n";           
+    cout << "    _ _.-\'(   )\'-._ _\n";     
+    cout << "   '=._.=-(   )-=._.='\n";    
+    cout << "          |/-\\|\n";           
+    cout << "          Y   Y\n";
+    cout << "  Please READ carefully: " << endl;
+    cout << "  If at any point you would like to exit the simulation, ENTER -1" << endl;
+    cout << "  Any other number would be treaded as per user process requests " << endl;
+    cout << "  Please maximize window size of shell terminal" << endl << endl;
+    cout << "  Simulation Specs:" << endl;
+    cout << "  - Scheduler: Multi Level FeedBack Queue: Two round robins with a quatum ";
+    cout << "time of 20 microseconds and 40 microsenconds, repectevely" << endl;
+    cout << "  - Page Replacement: second chance LRU" << endl;
+    cout << "  - Simulation of Dual Core with multithreading" << endl;
+    cout << "  To begin, please enter a number of process to be allocated " << endl;
 
-    mem M1(numPr);
+    mem M1(0);
 
     M1.createHD();
-
-    //queue<List<std::string>> waitToBeAlloc;
 
     DoublyList<PrBkCtr*>* queue1 = new DoublyList<PrBkCtr*>();
     DoublyList<PrBkCtr*>* queue2 = new DoublyList<PrBkCtr*>();
     DoublyList<PrBkCtr*>* queue3 = new DoublyList<PrBkCtr*>();
     ipc tmpIPC;
     Sched* S1 = new Sched(queue1, queue2, queue3 ,M1, tmpIPC);
-
-
-    /*
-
-    for(int i=0; i < numPr; i++){
-        if(M1.numProcess-- > 0){
-            waitToBeAlloc.push(M1.listOfProcesses[rand() % M1.listOfProcesses.size() ]);
-            create--;
-        }         
-    }
-    */
-
-
-
 
     struct arg_struct args;
     args.queue1 = queue1;
@@ -242,14 +240,13 @@ int main(){
     }
 
     rc = pthread_create(&threadId[2], NULL, runScheduler, (void *)&args);
-    ////rc = pthread_create(&threadId[0], NULL, (THREADFUNCPTR) &Sched::running, S1);
-
+    
     if (rc) {
         cout << "Error:unable to create thread," << rc << endl;
         exit(-1);
     }
 
-    //rc = pthread_create(&threadId[3], NULL, runScheduler, (void *)&args);
+    rc = pthread_create(&threadId[3], NULL, runScheduler, (void *)&args);
     
 
     if (rc) {
@@ -261,76 +258,6 @@ int main(){
     pthread_join(threadId[1], NULL);
     pthread_join(threadId[2], NULL);
     //pthread_join(threadId[3], NULL);
-
-  
-    //S1->running();
-
-    //M1.linker();
- 
-
-    //DoublyList<PrBkCtr*>* queue1 = new DoublyList<PrBkCtr*>();
-    //DoublyList<PrBkCtr*>* queue2 = new DoublyList<PrBkCtr*>();
-    //DoublyList<PrBkCtr*>* queue3 = new DoublyList<PrBkCtr*>();
-
-
-    
-
-
-/*
-    for(int i = 0; i < M1.memOfProcesses.size(); i++){
-
-        PrBkCtr* pcb = new PrBkCtr(M1.memOfProcesses[i].getHead());
-        M1.numProcess++;
-        tmpIPC.mailboxes.insert({pcb->mailbox.id,&pcb->mailbox.messages});
-        
-       
-        pcb->state = READY;              //change PCB state to READY
-        
-        S1->queue1->insertNode(pcb);     //insert pcbs into READY QUEUE
-
-        tmpIPC.PrTable.insert({pcb->PID, S1->queue1->tail});
-
-    }
-
-    
-    pthread_t threadId[3];    
-    int rc;
-    rc = pthread_create(&threadId[0], NULL, (THREADFUNCPTR) &Sched::running, S1);
-
-    if (rc) {
-        cout << "Error:unable to create thread," << rc << endl;
-        exit(-1);
-    }
-
-    rc = pthread_create(&threadId[1], NULL, (THREADFUNCPTR) &Sched::running, S1);
-
-    if (rc) {
-        cout << "Error:unable to create thread," << rc << endl;
-        exit(-1);
-    }
-
-
-    struct arg_struct args;
-    args.queue1 = queue1;
-    args.queue2 = queue2;
-    args.TLB = &M1.TLB;
-    args.freePages = &M1.freeFrames;
-    args.input = 8;
-    //rc = pthread_create(&threadId[1], NULL, PrintUI, (void *)&args);
-    rc = pthread_create(&threadId[2], NULL, getUserIput, (void *)&args);
-    
-    if (rc) {
-        cout << "Error:unable to create thread," << rc << endl;
-        exit(-1);
-    }
-
-    pthread_join(threadId[0], NULL);
-    pthread_join(threadId[1], NULL);
-    pthread_join(threadId[2], NULL);
-    //();
-    
-    cout << "-!" << endl;
-  */
 
     /*
     log(logINFO) << "foo " << "bar " << "baz";
@@ -345,7 +272,7 @@ int main(){
     */
 
     
-    system("pause");
+    //system("pause");
 }
 
 

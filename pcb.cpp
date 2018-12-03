@@ -60,4 +60,6 @@ PrBkCtr::PrBkCtr(List<std::string>::node* nextInst, semaphore* rw, semaphore* mu
     rw_mutex->value = 1;
     mutex = mu;
     mutex->value = 1;
+
+    sharedMem = new int;
 }
